@@ -25,3 +25,42 @@ https://github.com/MultikPatin/Auth_sprint_2
 Реализуйте возможность открепить аккаунт в соцсети от личного кабинета. 
     
 Решение залейте в репозиторий текущего спринта и отправьте на ревью.
+
+# Команды
+
+### Poetry
+
+- Установка зависимостей для всех проектов:
+   ```bash
+  poetry install --all-extras --with dev --with test
+  ```
+### Alembic
+
+- Создание миграции:
+  ```bash
+  alembic revision --autogenerate -m "<название миграции>"
+  ```
+- Применить все ревизии базы:
+  ```bash
+  alembic upgrade head
+  ```
+- Применить конкретную ревизии базы:
+  ```bash
+  alembic upgrade <ревизия>
+  ```
+- Вывести текущую ревизию базы данных:
+  ```bash
+  alembic current
+  ```
+- Вывести список доступных ревизий базы данных:
+  ```bash
+  alembic show
+  ```
+- Откатить все ревизии базы данных:
+  ```bash
+  alembic downgrade base
+  ```
+- Откатить до конкретной ревизии базы данных:
+  ```bash
+  alembic downgrade <ревизия>
+  ```
