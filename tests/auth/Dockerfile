@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 ENV SRC_PATH '/app'
-ENV APP_DIR 'tests'
+ENV APP_DIR 'tests/auth'
 
 WORKDIR $SRC_PATH
 

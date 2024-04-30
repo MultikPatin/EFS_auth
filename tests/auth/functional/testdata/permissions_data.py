@@ -1,4 +1,4 @@
-from tests.functional.testdata.base_data import (
+from tests.auth.functional import (
     id_good_1,
     id_good_2
 )

@@ -1,7 +1,7 @@
 import pytest
 from http import HTTPStatus
 
-from tests.functional.testdata.users_data import (
+from tests.auth.functional import (
     users_creation_data,
     del_query as del_query_user,
     del_history_query,
@@ -12,9 +12,9 @@ from tests.functional.testdata.users_data import (
     user_change_pass_data,
     user_invalid_pass_data
 )
-from tests.functional.testdata.roles_data import del_query as del_query_role, del_query_role_perm
-from tests.functional.testdata.tokens_data import UserClaims
-from tests.functional.testdata.base_data import (
+from tests.auth.functional import del_query as del_query_role, del_query_role_perm
+from tests.auth.functional.testdata.tokens_data import UserClaims
+from tests.auth.functional import (
     id_good_1,
     id_super,
     id_bad,

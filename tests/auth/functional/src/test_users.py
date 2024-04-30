@@ -1,17 +1,22 @@
 import pytest
 from http import HTTPStatus
 
-from tests.functional.testdata.permissions_data import (
-    permissions_creation_data,
-    permission_request_create,
+
+from tests.auth.functional import (
+    users_creation_data,
+    user_request_create,
     invalid_too_long_name,
     invalid_too_short_name,
-    del_query as del_query_permission
+    invalid_email,
+    role_template,
+    del_query as del_query_user,
+    del_history_query,
+    user_super_data,
+    role_super_data,
 )
-from tests.functional.testdata.roles_data import del_query as del_query_role, del_query_role_perm
-from tests.functional.testdata.users_data import del_query as del_query_user, user_super_data, role_super_data
-from tests.functional.testdata.tokens_data import UserClaims
-from tests.functional.testdata.base_data import (
+from tests.auth.functional.testdata.tokens_data import UserClaims
+from tests.auth.functional import del_query as del_query_role, del_query_role_perm
+from tests.auth.functional import (
     ids,
     id_super,
     id_good_1,
@@ -29,7 +34,7 @@ from tests.functional.testdata.base_data import (
     ],
 )
 @pytest.mark.asyncio
-async def test_list_permissions(
+async def test_list_users(
     make_get_request,
     postgres_write_data,
     postgres_execute,
@@ -38,10 +43,10 @@ async def test_list_permissions(
     query_data,
     expected_answer,
 ):
+    await postgres_execute(del_history_query)
     await postgres_execute(del_query_user)
     await postgres_execute(del_query_role_perm)
     await postgres_execute(del_query_role)
-    await postgres_execute(del_query_permission)
 
     await postgres_write_data([role_super_data], "roles")
     await postgres_write_data([user_super_data], "users")
@@ -50,6 +55,7 @@ async def test_list_permissions(
     tokens = await create_tokens(payload)
     if expected_answer.get("status") == HTTPStatus.OK:
         await set_token(query_data, tokens.refresh_token_cookie)
+
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
         "refresh_token_cookie": tokens.refresh_token_cookie
@@ -57,30 +63,101 @@ async def test_list_permissions(
 
     template = [{"uuid": id} for id in ids[:expected_answer.get("length")]]
     for index, id in enumerate(template):
-        id.update(permissions_creation_data)
-        id.update({"name": f"_{str(index)}"})
+        id.update(users_creation_data)
+        id.update({"email": f"example{str(index)}@mail.ru", "role_uuid": id_good_1})
     if template:
-        table = "permissions"
+        table = "roles"
+        template_for_role = [role_template]
+        template_for_role[0].update({"uuid": id_good_1})
+        await postgres_write_data(template_for_role, table)
+        table = "users"
         await postgres_write_data(template, table)
 
-    path = "/permissions/"
-    response = await make_get_request(path, query_data, cookies=cookies)
+    path = "/users/"
+    response = await make_get_request(path, cookies=cookies)
     body, status, _ = response
-
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
-        assert len(body) == expected_answer.get("length")
+        assert len(body)-1 == expected_answer.get("length")
 
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
     [
         (
-            permission_request_create,
+            {"user_id": id_good_1},
             {
                 "status": HTTPStatus.OK,
-                "description": "Не тот кто каждый поймет",
-                "name": "Артхаус"
+                "body": {
+                    "code": HTTPStatus.OK,
+                    "details": "User deleted successfully"
+                },
+            },
+        ),
+        ({"user_id": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
+        ({"user_id": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+    ],
+)
+@pytest.mark.asyncio
+async def test_delete_user(
+    make_delete_request,
+    postgres_write_data,
+    postgres_execute,
+    create_tokens,
+    set_token,
+    query_data,
+    expected_answer,
+):
+    await postgres_execute(del_history_query)
+    await postgres_execute(del_query_user)
+    await postgres_execute(del_query_role_perm)
+    await postgres_execute(del_query_role)
+
+    await postgres_write_data([role_super_data], "roles")
+    await postgres_write_data([user_super_data], "users")
+
+    payload = UserClaims(user_uuid=id_super, role_uuid=id_super)
+    tokens = await create_tokens(payload)
+    if expected_answer.get("status") == HTTPStatus.OK:
+        await set_token(query_data, tokens.refresh_token_cookie)
+
+    cookies = {
+        "access_token_cookie": tokens.access_token_cookie,
+        "refresh_token_cookie": tokens.refresh_token_cookie
+    }
+
+    template = [{"uuid": id_good_1}]
+    template[0].update(users_creation_data)
+    template[0].update({"email": "example@mail.ru", "role_uuid": id_good_1})
+    if template:
+        table = "roles"
+        template_for_role = [role_template]
+        template_for_role[0].update({"uuid": id_good_1})
+        await postgres_write_data(template_for_role, table)
+        table = "users"
+        await postgres_write_data(template, table)
+
+
+    path = f"/users/{query_data.get('user_id')}"
+    response = await make_delete_request(path, cookies=cookies)
+    body, status, _ = response
+
+    assert status == expected_answer.get("status")
+    if status == HTTPStatus.OK:
+        assert body == expected_answer.get("body")
+
+
+@pytest.mark.parametrize(
+    "query_data, expected_answer",
+    [
+        (
+            user_request_create,
+            {
+                "status": HTTPStatus.OK,
+                "first_name": "Вася",
+                "last_name": "Пупкин",
+                "email": "exemple1@mail.ru",
+                "is_superuser": False
             },
         ),
         (
@@ -91,10 +168,14 @@ async def test_list_permissions(
             invalid_too_short_name,
             {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
         ),
+        (
+            invalid_email,
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
-async def test_create_permission(
+async def test_create_user(
     make_post_request,
     postgres_execute,
     postgres_write_data,
@@ -103,10 +184,10 @@ async def test_create_permission(
     query_data,
     expected_answer,
 ):
+    await postgres_execute(del_history_query)
     await postgres_execute(del_query_user)
     await postgres_execute(del_query_role_perm)
     await postgres_execute(del_query_role)
-    await postgres_execute(del_query_permission)
 
     await postgres_write_data([role_super_data], "roles")
     await postgres_write_data([user_super_data], "users")
@@ -115,38 +196,43 @@ async def test_create_permission(
     tokens = await create_tokens(payload)
     if expected_answer.get("status") == HTTPStatus.OK:
         await set_token(query_data, tokens.refresh_token_cookie)
+
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
         "refresh_token_cookie": tokens.refresh_token_cookie
     }
 
-    path = "/permissions/"
+    path = "/users/"
     response = await make_post_request(path, body=query_data, cookies=cookies)
     body, status, _ = response
 
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
-        assert body.get("description") == expected_answer.get("description")
-        assert body.get("name") == expected_answer.get("name")
+        assert body.get("first_name") == expected_answer.get("first_name")
+        assert body.get("last_name") == expected_answer.get("last_name")
+        assert body.get("email") == expected_answer.get("email")
+        assert body.get("is_superuser") == expected_answer.get("is_superuser")
+
+
 
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
     [
         (
-            {"permission_uuid": id_good_1},
+            {"user_id": id_good_1},
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "description", "name"],
+                "keys": ["created_at", "updated_at", "uuid", "first_name", "last_name", "email", "is_superuser", "role_uuid"],
             },
         ),
-        ({"permission_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"permission_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        ({"user_id": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
+        ({"user_id": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
     ],
 )
 @pytest.mark.asyncio
-async def test_get_permission(
+async def test_get_user(
     make_get_request,
     postgres_write_data,
     postgres_execute,
@@ -155,10 +241,10 @@ async def test_get_permission(
     query_data,
     expected_answer,
 ):
+    await postgres_execute(del_history_query)
     await postgres_execute(del_query_user)
     await postgres_execute(del_query_role_perm)
     await postgres_execute(del_query_role)
-    await postgres_execute(del_query_permission)
 
     await postgres_write_data([role_super_data], "roles")
     await postgres_write_data([user_super_data], "users")
@@ -167,19 +253,24 @@ async def test_get_permission(
     tokens = await create_tokens(payload)
     if expected_answer.get("status") == HTTPStatus.OK:
         await set_token(query_data, tokens.refresh_token_cookie)
+
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
         "refresh_token_cookie": tokens.refresh_token_cookie
     }
 
     template = [{"uuid": id_good_1}]
-    template[0].update(permissions_creation_data)
-    template[0].update({"name": "Артхаус"})
+    template[0].update(users_creation_data)
+    template[0].update({"email": "example@mail.ru", "role_uuid": id_good_1})
     if template:
-        table = "permissions"
+        table = "roles"
+        template_for_role = [role_template]
+        template_for_role[0].update({"uuid": id_good_1})
+        await postgres_write_data(template_for_role, table)
+        table = "users"
         await postgres_write_data(template, table)
 
-    path = f"/permissions/{query_data.get('permission_uuid')}"
+    path = f"/users/{query_data.get('user_id')}"
     response = await make_get_request(path, cookies=cookies)
     body, status, _ = response
 
@@ -188,7 +279,7 @@ async def test_get_permission(
         assert body.get("uuid") == expected_answer.get("uuid")
         for key in body.keys():
             assert key in expected_answer.get("keys"), (
-                "При GET-запросе к эндпоинту `auth/v1/permissions/{permission_uuid}` в ответе API должны "
+                "При GET-запросе к эндпоинту `auth/v1/users/{user_id}` в ответе API должны "
                 f"быть ключи `{expected_answer.get('keys')}`."
             )
 
@@ -197,29 +288,39 @@ async def test_get_permission(
     "query_data, expected_answer",
     [
         (
-            {"permission_uuid": id_good_1},
+            {"user_id": id_good_1},
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "description", "name"],
+                "keys": ["created_at", "updated_at", "uuid", "first_name", "last_name", "email", "is_superuser", "role_uuid"],
                 "pathced_data": {
-                    "description": "для самых тех"
+                    "first_name": "Эдик",
+                    "last_name": "Эриксон",
                 },
             },
         ),
         (
-            {"permission_uuid": id_good_1},
+            {"user_id": id_good_1},
             {
                 "status": HTTPStatus.UNPROCESSABLE_ENTITY,
                 "pathced_data": {
-                    "description": "",
+                    "first_name": "Эдик",
+                },
+            }
+        ),
+        (
+            {"user_id": id_good_1},
+            {
+                "status": HTTPStatus.UNPROCESSABLE_ENTITY,
+                "pathced_data": {
+                    "last_name": "Эриксон",
                 },
             }
         ),
     ],
 )
 @pytest.mark.asyncio
-async def test_patch_permission(
+async def test_patch_user(
     make_patch_request,
     postgres_write_data,
     postgres_execute,
@@ -228,10 +329,10 @@ async def test_patch_permission(
     query_data,
     expected_answer,
 ):
+    await postgres_execute(del_history_query)
     await postgres_execute(del_query_user)
     await postgres_execute(del_query_role_perm)
     await postgres_execute(del_query_role)
-    await postgres_execute(del_query_permission)
 
     await postgres_write_data([role_super_data], "roles")
     await postgres_write_data([user_super_data], "users")
@@ -240,19 +341,26 @@ async def test_patch_permission(
     tokens = await create_tokens(payload)
     if expected_answer.get("status") == HTTPStatus.OK:
         await set_token(query_data, tokens.refresh_token_cookie)
+
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
         "refresh_token_cookie": tokens.refresh_token_cookie
     }
 
     template = [{"uuid": id_good_1}]
-    template[0].update(permissions_creation_data)
-    template[0].update({"name": "+18"})
+
+    template[0].update(users_creation_data)
+    template[0].update({"email": "example@mail.ru", "role_uuid": id_good_1})
+
     if template:
-        table = "permissions"
+        table = "roles"
+        template_for_role = [role_template]
+        template_for_role[0].update({"uuid": id_good_1})
+        await postgres_write_data(template_for_role, table)
+        table = "users"
         await postgres_write_data(template, table)
 
-    path = f"/permissions/{query_data.get('permission_uuid')}"
+    path = f"/users/{query_data.get('user_id')}"
     response = await make_patch_request(path, body=expected_answer.get("pathced_data"), cookies=cookies)
     body, status, _ = response
 
@@ -261,7 +369,7 @@ async def test_patch_permission(
         assert body.get("uuid") == expected_answer.get("uuid")
         for key in body.keys():
             assert key in expected_answer.get("keys"), (
-                "При PATCH-запросе к эндпоинту `auth/v1/permissions/{permission_uuid}` в ответе API должны "
+                "При PATCH-запросе к эндпоинту `auth/v1/users/{user_id}` в ответе API должны "
                 f"быть ключи `{expected_answer.get('keys')}`."
             )
 
@@ -270,22 +378,19 @@ async def test_patch_permission(
     "query_data, expected_answer",
     [
         (
-            {"permission_uuid": id_good_1},
+            {"user_uuid": id_super},
             {
                 "status": HTTPStatus.OK,
-                "body": {
-                    "code": HTTPStatus.OK,
-                    "details": "Permission deleted successfully"
-                },
-            },
+                "uuid": id_super,
+                "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
+            }
         ),
-        ({"permission_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"permission_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
     ],
 )
 @pytest.mark.asyncio
-async def test_delete_permission(
-    make_delete_request,
+async def test_get_me(
+    make_get_request,
+    make_post_request,
     postgres_write_data,
     postgres_execute,
     create_tokens,
@@ -293,10 +398,10 @@ async def test_delete_permission(
     query_data,
     expected_answer,
 ):
+    await postgres_execute(del_history_query)
     await postgres_execute(del_query_user)
     await postgres_execute(del_query_role_perm)
     await postgres_execute(del_query_role)
-    await postgres_execute(del_query_permission)
 
     await postgres_write_data([role_super_data], "roles")
     await postgres_write_data([user_super_data], "users")
@@ -305,22 +410,25 @@ async def test_delete_permission(
     tokens = await create_tokens(payload)
     if expected_answer.get("status") == HTTPStatus.OK:
         await set_token(query_data, tokens.refresh_token_cookie)
+
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
         "refresh_token_cookie": tokens.refresh_token_cookie
     }
 
-    template = [{"uuid": id_good_1}]
-    template[0].update(permissions_creation_data)
-    template[0].update({"name": "Артхаус"})
-    if template:
-        table = "permissions"
-        await postgres_write_data(template, table)
+    if expected_answer.get("statis") == HTTPStatus.OK:
+        path = f"/tokens/login/"
+        body_ = {
+            "email": user_super_data.get("email"),
+            "password": expected_answer.get("password")
+        }
+        response = await make_post_request(path, body=body_,cookies=cookies)
+        body, status, _ = response
 
-    path = f"/permissions/{query_data.get('permission_uuid')}"
-    response = await make_delete_request(path, cookies=cookies)
+    path = f"/users/me/"
+    response = await make_get_request(path, cookies=cookies)
     body, status, _ = response
 
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
-        assert body == expected_answer.get("body")
+        assert body.get("uuid") == expected_answer.get("uuid")

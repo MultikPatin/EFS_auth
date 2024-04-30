@@ -1,7 +1,7 @@
 import pytest
 import jwt
-from tests.functional.settings import settings
-from tests.functional.testdata.tokens_data import CacheTokens, UserClaims
+from tests.auth.functional import settings
+from tests.auth.functional.testdata.tokens_data import CacheTokens, UserClaims
 from fastapi import HTTPException
 from http import HTTPStatus
 

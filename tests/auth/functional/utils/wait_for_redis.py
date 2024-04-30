@@ -2,7 +2,7 @@ import asyncio
 
 from redis.asyncio import Redis
 
-from tests.functional.settings import settings
+from tests.auth.functional import settings
 import backoff
 
 

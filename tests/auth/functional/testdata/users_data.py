@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash
-from tests.functional.testdata.base_data import (
+from tests.auth.functional import (
     id_super,
 )
 

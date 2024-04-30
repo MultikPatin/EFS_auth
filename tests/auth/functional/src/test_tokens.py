@@ -1,16 +1,16 @@
 import pytest
 from http import HTTPStatus
 
-from tests.functional.testdata.tokens_data import (
+from tests.auth.functional.testdata.tokens_data import (
     token_request_login,
     token_invalid_email_request_login,
     token_uregistered_email_request_login,
     token_invalid_password_request_login,
 )
-from tests.functional.testdata.tokens_data import UserClaims
-from tests.functional.testdata.roles_data import del_query as del_query_role, del_query_role_perm
-from tests.functional.testdata.users_data import del_query as del_query_user, del_history_query, user_super_data, role_super_data
-from tests.functional.testdata.base_data import (
+from tests.auth.functional.testdata.tokens_data import UserClaims
+from tests.auth.functional import del_query as del_query_role, del_query_role_perm
+from tests.auth.functional import del_query as del_query_user, del_history_query, user_super_data, role_super_data
+from tests.auth.functional import (
     id_super,
     id_good_1,
     id_good_2,

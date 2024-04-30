@@ -3,7 +3,7 @@ import pytest
 from redis.asyncio import Redis
 from psycopg2.extensions import connection as _connection
 from psycopg2.extras import execute_values
-from tests.functional.settings import settings
+from tests.auth.functional import settings
 
 
 @pytest.fixture

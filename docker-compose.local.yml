@@ -1,58 +1,81 @@
-name: auth_app
+name: PRACTIX_app
 services:
 
-  postgres:
+  postgres_base:
+    &base-postgres
     image: postgres:${POSTGRES_VERSION}
     container_name: ${POSTGRES_HOST}
     restart: always
-    env_file:
-      - .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 3s
       timeout: 3s
       retries: 5
-      start_period: 3s
+      start_period: 5s
     ports:
       - "${POSTGRES_PORT}:5432"
     networks:
       - services
 
-  migrations:
+  postgres_content:
+    <<: *base-postgres
+    env_file:
+      - env/content/.env.postgres
+    volumes:
+      - postgres_content_data:/var/lib/postgresql/data/
+      - ./db/postgres/:/docker-entrypoint-initdb.d
+
+  postgres_auth:
+    <<: *base-postgres
+    env_file:
+      - env/auth/.env.postgres
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data/
+
+  migrations_auth:
     build:
       dockerfile: ./migrations/Dockerfile
-    container_name: migrations
+    container_name: migrations_auth
     environment:
       - LOCAL=False
     env_file:
-      - .env
+      - env/auth/.env.postgres
     depends_on:
-      postgres:
+      postgres_auth:
         condition: service_healthy
     networks:
       - services
 
-  redis:
+  redis_base:
+    &base-redis
     image: redis:${REDIS_VERSION}
     container_name: ${REDIS_HOST}
     restart: always
-    env_file:
-      - .env
-    volumes:
-      - redis_data:/var/lib/redis/data
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 3
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${POSTGRES_PORT}:6379"
     networks:
       - services
 
-  api:
+  redis_content:
+    <<: *base-redis
+    env_file:
+      - env/content/.env.redis
+    volumes:
+      - redis_content_data:/var/lib/redis/data
+
+  redis_auth:
+    <<: *base-redis
+    env_file:
+      - env/auth/.env.redis
+    volumes:
+      - redis_auth_data:/var/lib/redis/data
+
+  auth_service:
     build:
       dockerfile: src/auth/Dockerfile
     container_name: ${API_HOST}
@@ -60,11 +83,11 @@ services:
     environment:
       - LOCAL=False
     env_file:
-      - .env
+      - env/auth/.env.api
     depends_on:
-      postgres:
+      postgres_auth:
         condition: service_healthy
-      redis:
+      redis_auth:
         condition: service_healthy
     expose:
       - "8000"
@@ -73,12 +96,14 @@ services:
 
   nginx:
     image: nginx:${NGINX_VERSION}
-    container_name: gateway
+    container_name: ${NGINX_HOST}
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/configs:/etc/nginx/conf.d:ro
       - static:/staticfiles/
     restart: unless-stopped
+    env_file:
+      - env/.env.nginx
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,8 +119,10 @@ services:
 
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_content_data:
+  postgres_auth_data:
+  redis_content_data:
+  redis_auth_data:
   static:
 
 networks:

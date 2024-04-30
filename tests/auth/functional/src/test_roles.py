@@ -1,7 +1,7 @@
 import pytest
 from http import HTTPStatus
 
-from tests.functional.testdata.roles_data import (
+from tests.auth.functional import (
     roles_creation_data,
     role_request_create,
     invalid_too_long_name,
@@ -9,10 +9,10 @@ from tests.functional.testdata.roles_data import (
     del_query as del_query_role,
     del_query_role_perm
 )
-from tests.functional.testdata.tokens_data import UserClaims
-from tests.functional.testdata.users_data import del_query as del_query_user, user_super_data, role_super_data
-from tests.functional.testdata.permissions_data import del_query as del_query_permissions, permission_1, permission_2
-from tests.functional.testdata.base_data import (
+from tests.auth.functional.testdata.tokens_data import UserClaims
+from tests.auth.functional import del_query as del_query_user, user_super_data, role_super_data
+from tests.auth.functional import del_query as del_query_permissions, permission_1, permission_2
+from tests.auth.functional import (
     ids,
     id_super,
     id_good_1,

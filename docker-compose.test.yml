@@ -1,4 +1,4 @@
-name: test_auth_app
+name: test_app
 services:
 
   postgres:
@@ -48,7 +48,7 @@ services:
     networks:
       - test_services
 
-  api:
+  auth:
     build:
       dockerfile: src/auth/Dockerfile
     container_name: ${API_HOST}
@@ -69,7 +69,7 @@ services:
 
   auth_tests:
     build:
-      dockerfile: tests/Dockerfile
+      dockerfile: tests/auth/Dockerfile
     container_name: auth_tests
     restart: no
     environment:
