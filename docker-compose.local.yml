@@ -37,7 +37,7 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 3s
       timeout: 3s
-      retries: 5
+      retries: 3
       start_period: 5s
     ports:
       - "${POSTGRES_PORT}:5432"
@@ -90,6 +90,36 @@ services:
       - env/.env.auth
     volumes:
       - redis_auth_data:/var/lib/redis/data
+
+  etl-content-movies:
+      &base-etl
+      build:
+        dockerfile: src/etl_content/Dockerfile
+      container_name: etl-content-movies
+      restart: always
+      environment:
+        - ETL_NAME=movies
+      env_file:
+        - env/.env.content
+      depends_on:
+        postgres_content:
+          condition: service_healthy
+        elastic_content:
+          condition: service_healthy
+      networks:
+        - services
+
+  etl-content-genres:
+    <<: *base-etl
+    container_name: etl-content-genres
+    environment:
+      - ETL_NAME=genres
+
+  etl-content-persons:
+    <<: *base-etl
+    container_name: etl-content-persons
+    environment:
+      - ETL_NAME=persons
 
   service_content:
     &base-service
