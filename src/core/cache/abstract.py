@@ -1,4 +1,5 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import TypeVar
 from uuid import UUID
 
@@ -7,7 +8,23 @@ from pydantic import BaseModel
 AbstractBaseModel = TypeVar("AbstractBaseModel", bound=BaseModel)
 
 
-class AbstractAuthCache:
+class AbstractCache(ABC):
+    @abstractmethod
+    def build_key(self, key_prefix: str, *args: Sequence) -> str:
+        """
+        Build a cache key.
+
+        Args:
+            key_prefix (str): The prefix to use for the cache key.
+            *args: Additional arguments to include in the cache key.
+
+        Returns:
+            The built cache key.
+        """
+        raise NotImplementedError
+
+
+class AbstractAuthCache(AbstractCache):
     """
     Abstract base class for auth caching.
     """
@@ -59,7 +76,7 @@ class AbstractAuthCache:
         raise NotImplementedError
 
 
-class AbstractModelCache:
+class AbstractModelCache(AbstractCache):
     """
     Abstract base class for model caching.
     """

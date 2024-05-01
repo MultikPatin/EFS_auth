@@ -19,7 +19,7 @@ class PostgresSettings(BaseSettings):
     user: str = Field(default=..., alias="POSTGRES_USER")
     password: SecretStr = Field(default=..., alias="POSTGRES_PASSWORD")
     host: str = Field(default=..., alias="POSTGRES_HOST")
-    port: int = Field(default=..., alias="POSTGRES_PORT")
+    port: int = Field(default=5432, alias="POSTGRES_PORT")
 
     def __correct_host(self) -> str:
         if local == "True":

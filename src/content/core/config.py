@@ -9,14 +9,14 @@ from src.content.core.logger import LOGGING
 from src.core.configs.elastic import ElasticSettings
 from src.core.configs.redis import RedisSettings
 
-load_dotenv(find_dotenv(".env"))
+load_dotenv(find_dotenv("env/.env.content"))
 
 logging_config.dictConfig(LOGGING)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file="env/.env.content", env_file_encoding="utf-8", extra="ignore"
     )
     elastic: ElasticSettings = ElasticSettings()
     redis: RedisSettings = RedisSettings()

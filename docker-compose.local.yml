@@ -1,4 +1,4 @@
-name: PRACTIX
+name: PRACTIX_app
 services:
 
   elastic_content:
@@ -29,10 +29,10 @@ services:
     container_name: ${POSTGRES_HOST}
     restart: always
     env_file:
-      - env/content/.env.postgres
+      - env/.env.content
     volumes:
       - postgres_content_data:/var/lib/postgresql/data/
-      - ./db/postgres_content/:/docker-entrypoint-initdb.d
+      - ./postgres_content/:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 3s
@@ -47,7 +47,7 @@ services:
   postgres_auth:
     <<: *base-postgres
     env_file:
-      - env/auth/.env.postgres
+      - env/.env.auth
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data/
 
@@ -58,7 +58,7 @@ services:
     environment:
       - LOCAL=False
     env_file:
-      - env/auth/.env.postgres
+      - env/.env.auth
     depends_on:
       postgres_auth:
         condition: service_healthy
@@ -71,7 +71,7 @@ services:
     container_name: ${REDIS_HOST}
     restart: always
     env_file:
-      - env/content/.env.redis
+      - env/.env.content
     volumes:
       - redis_content_data:/var/lib/redis/data
     healthcheck:
@@ -87,7 +87,7 @@ services:
   redis_auth:
     <<: *base-redis
     env_file:
-      - env/auth/.env.redis
+      - env/.env.auth
     volumes:
       - redis_auth_data:/var/lib/redis/data
 
@@ -98,7 +98,7 @@ services:
     container_name: ${API_HOST}
     restart: always
     env_file:
-      - env/content/.env.api
+      - env/.env.content
     environment:
       - LOCAL=False
     depends_on:
@@ -118,7 +118,7 @@ services:
     build:
       dockerfile: src/auth/Dockerfile
     env_file:
-      - env/auth/.env.api
+      - env/.env.auth
     depends_on:
       postgres_auth:
         condition: service_healthy

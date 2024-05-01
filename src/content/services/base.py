@@ -2,8 +2,8 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
-from src.content.cache.abstract import AbstractModelCache
 from src.content.db.abstract import AbstractDBClient
+from src.core.cache.abstract import AbstractModelCache
 
 ModelDB = TypeVar("ModelDB", bound=BaseModel)
 
