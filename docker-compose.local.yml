@@ -1,90 +1,154 @@
-name: auth_app
+name: PRACTIX_app
 services:
 
-  postgres:
+  elastic_content:
+    image: elasticsearch:${ELASTIC_VERSION}
+    container_name: ${ELASTIC_HOST}
+    restart: always
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    env_file:
+      - .env
+    volumes:
+      - elastic_content_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -s http://${ELASTIC_HOST}:${ELASTIC_PORT} >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 50
+      start_period: 10s
+    ports:
+      - "${ELASTIC_PORT}:9200"
+    networks:
+      - services
+
+  postgres_content:
+    &base-postgres
     image: postgres:${POSTGRES_VERSION}
     container_name: ${POSTGRES_HOST}
     restart: always
     env_file:
-      - .env
+      - env/.env.content
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_content_data:/var/lib/postgresql/data/
+      - ./postgres_content/:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 3s
       timeout: 3s
       retries: 5
-      start_period: 3s
+      start_period: 5s
     ports:
       - "${POSTGRES_PORT}:5432"
     networks:
       - services
 
-  migrations:
+  postgres_auth:
+    <<: *base-postgres
+    env_file:
+      - env/.env.auth
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data/
+
+  migrations_auth:
     build:
       dockerfile: ./migrations/Dockerfile
-    container_name: migrations
+    container_name: migrations_auth
     environment:
       - LOCAL=False
     env_file:
-      - .env
+      - env/.env.auth
     depends_on:
-      postgres:
+      postgres_auth:
         condition: service_healthy
     networks:
       - services
 
-  redis:
+  redis_content:
+    &base-redis
     image: redis:${REDIS_VERSION}
     container_name: ${REDIS_HOST}
     restart: always
     env_file:
-      - .env
+      - env/.env.content
     volumes:
-      - redis_data:/var/lib/redis/data
+      - redis_content_data:/var/lib/redis/data
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 3
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${POSTGRES_PORT}:6379"
     networks:
       - services
 
-  api:
+  redis_auth:
+    <<: *base-redis
+    env_file:
+      - env/.env.auth
+    volumes:
+      - redis_auth_data:/var/lib/redis/data
+
+  service_content:
+    &base-service
     build:
-      dockerfile: src/auth/Dockerfile
+      dockerfile: src/content/Dockerfile
     container_name: ${API_HOST}
     restart: always
+    env_file:
+      - env/.env.content
     environment:
       - LOCAL=False
-    env_file:
-      - .env
     depends_on:
-      postgres:
+      postgres_content:
         condition: service_healthy
-      redis:
+      elastic_content:
         condition: service_healthy
-    expose:
-      - "8000"
+      redis_content:
+        condition: service_healthy
+    ports:
+      - "${API_PORT}:8000"
     networks:
       - services
+
+  service_auth:
+    <<: *base-service
+    build:
+      dockerfile: src/auth/Dockerfile
+    env_file:
+      - env/.env.auth
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_healthy
 
   nginx:
     image: nginx:${NGINX_VERSION}
-    container_name: gateway
+    container_name: ${NGINX_HOST}
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/configs:/etc/nginx/conf.d:ro
       - static:/staticfiles/
     restart: unless-stopped
+    env_file:
+      - env/.env.nginx
     depends_on:
-      postgres:
+      postgres_auth:
         condition: service_healthy
-      redis:
+      redis_auth:
         condition: service_healthy
-      api:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+      service_auth:
+        condition: service_started
+      service_content:
         condition: service_started
     ports:
       - "443:443"
@@ -94,8 +158,11 @@ services:
 
 
 volumes:
-  postgres_data:
-  redis_data:
+  elastic_content_data:
+  postgres_content_data:
+  redis_content_data:
+  postgres_auth_data:
+  redis_auth_data:
   static:
 
 networks:

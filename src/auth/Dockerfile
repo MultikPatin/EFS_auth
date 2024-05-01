@@ -12,7 +12,7 @@ COPY poetry.lock pyproject.toml ./
 
 RUN python -m pip install --no-cache-dir poetry==1.7.1 \
     && poetry config virtualenvs.create false \
-    && poetry install --extras api --no-interaction --no-ansi \
+    && poetry install --extras auth --no-interaction --no-ansi \
     && rm -rf $(poetry config cache-dir)/{cache,artifacts}
 
 COPY ./${APP_DIR} ./${APP_DIR}
