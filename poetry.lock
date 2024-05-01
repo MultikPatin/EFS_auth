@@ -1757,7 +1757,7 @@ multidict = ">=4.0"
 [extras]
 admin = ["django", "django-split-settings", "gunicorn", "psycopg2-binary", "uwsgi"]
 auth = ["async-fastapi-jwt-auth", "asyncpg", "fastapi", "gunicorn", "redis", "sqlalchemy", "uvicorn", "werkzeug"]
-etl = ["backoff", "elasticsearch", "psycopg2-binary"]
+etl-content = ["backoff", "elasticsearch", "psycopg2-binary"]
 migrations = ["alembic", "asyncpg", "sqlalchemy", "werkzeug"]
 movies = ["elasticsearch", "fastapi", "gunicorn", "redis", "uvicorn"]
 test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "werkzeug"]
@@ -1765,4 +1765,4 @@ test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "w
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3f4aed0d62adfed9f1b5d8b2e771acd98ad9c3adf6141c8c0093bf2e3843c6b5"
+content-hash = "d0aa007250c68e8a1580936566c1c92c58abe00ee3ee240d734a8d86f0fe29a6"
