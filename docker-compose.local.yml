@@ -108,8 +108,8 @@ services:
         condition: service_healthy
       redis_content:
         condition: service_healthy
-    ports:
-      - "${API_PORT}:8000"
+    expose:
+      - "8000"
     networks:
       - services
 
@@ -124,6 +124,18 @@ services:
         condition: service_healthy
       redis_auth:
         condition: service_healthy
+
+  service_admin:
+    <<: *base-service
+    build:
+      dockerfile: src/admin/Dockerfile
+    env_file:
+      - env/.env.admin
+      - env/.env.content
+    volumes:
+      - static:/backend_static
+    postgres_content:
+      condition: service_healthy
 
   nginx:
     image: nginx:${NGINX_VERSION}
