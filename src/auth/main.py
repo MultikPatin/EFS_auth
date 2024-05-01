@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI
 from redis.asyncio import Redis
 
+from src.auth.cache import redis
 from src.auth.core.config import settings
 from src.auth.core.logger import LOGGING
 from src.auth.endpoints.v1 import (
@@ -16,7 +17,6 @@ from src.auth.endpoints.v1 import (
     users_additional,
 )
 from src.auth.utils.startup import StartUpService
-from src.core.cache import redis
 from src.core.configs.postgres import PostgresSettings
 from src.core.db.clients.postgres import PostgresDatabase
 from src.core.utils.logger import create_logger

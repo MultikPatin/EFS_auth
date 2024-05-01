@@ -1,27 +1,17 @@
-from logging import Logger
 from typing import Any
 
-from redis.asyncio import Redis
+from src.core.cache.abstract import AbstractBaseModel, AbstractModelCache
+from src.core.cache.redis import RedisBase
 
-from src.content.cache.abstract import AbstractBaseModel, AbstractModelCache
 
-
-class RedisCache(AbstractModelCache):
+class RedisCache(AbstractModelCache, RedisBase):
     """
-    Клиент для работы api с Redis.
+    Клиент для работы с Redis.
 
     Args:
         redis (Redis): объект для работы с Redis
         logger (Logger): объект для записи в журналы
-
     """
-
-    __redis: Redis
-    __logger: Logger
-
-    def __init__(self, redis: Redis, logger: Logger):
-        self.__redis = redis
-        self.__logger = logger
 
     async def set_one_model(
         self,
@@ -156,23 +146,6 @@ class RedisCache(AbstractModelCache):
             self.__logger.error("key value is required")
             raise
         return f"{key_prefix}-{key}"
-
-    async def close(self) -> None:
-        """
-        Закрыть соединение с Redis.
-
-        """
-        await self.__redis.aclose()
-        self.__logger.info("Connection to Redis was closed.")
-
-    async def ping(self) -> Any:
-        """
-        Ping the Redis server to ensure the connection is still alive.
-
-        Returns:
-            bool: True if the ping was successful, False if it failed.
-        """
-        return await self.__redis.ping()
 
 
 redis: RedisCache | None = None

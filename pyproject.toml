@@ -63,7 +63,6 @@ etl = [
     "psycopg2-binary",
 ]
 
-
 [tool.poetry.group.dev]
 optional = true
 
