@@ -1,7 +1,7 @@
 FROM python:3.11
 
-ENV SRC_PATH '/opt/app'
-ENV APP_DIR 'django_api'
+ENV SRC_PATH '/app'
+ENV APP_DIR 'src/admin'
 
 WORKDIR $SRC_PATH
 
@@ -17,7 +17,7 @@ COPY poetry.lock pyproject.toml ./
 
 RUN python -m pip install --no-cache-dir poetry==1.7.1 \
     && poetry config virtualenvs.create false \
-    && poetry install --extras django_api --no-interaction --no-ansi \
+    && poetry install --extras admin --no-interaction --no-ansi \
     && rm -rf $(poetry config cache-dir)/{cache,artifacts}
 
 COPY ./${APP_DIR} ./${APP_DIR}

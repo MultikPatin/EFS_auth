@@ -1,13 +1,13 @@
-from core.configs.postgres import settings as postgres_settings
+from src.admin.core.config import settings
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": postgres_settings.db_name,
-        "USER": postgres_settings.user,
-        "PASSWORD": postgres_settings.password.get_secret_value(),
-        "HOST": postgres_settings.host,
-        "PORT": postgres_settings.port,
+        "NAME": settings.postgres.db_name,
+        "USER": settings.postgres.user,
+        "PASSWORD": settings.postgres.password.get_secret_value(),
+        "HOST": settings.postgres.host,
+        "PORT": settings.postgres.port,
         "OPTIONS": {"options": "-c search_path=public,content"},
     }
 }

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from split_settings.tools import include
-from core.configs.django import settings as django_settings
+from src.admin.core.config import settings as django_settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
