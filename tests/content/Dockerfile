@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 ENV SRC_PATH '/app'
-ENV APP_DIR 'src/auth'
+ENV APP_DIR 'tests'
 
 WORKDIR $SRC_PATH
 
@@ -12,14 +12,10 @@ COPY poetry.lock pyproject.toml ./
 
 RUN python -m pip install --no-cache-dir poetry==1.7.1 \
     && poetry config virtualenvs.create false \
-    && poetry install --extras auth --no-interaction --no-ansi \
+    && poetry install --extras test --with test --no-interaction --no-ansi \
     && rm -rf $(poetry config cache-dir)/{cache,artifacts}
 
 COPY ./${APP_DIR} ./${APP_DIR}
-COPY ./src/core/cache ./src/core/cache
-COPY ./src/core/configs ./src/core/configs
-COPY ./src/core/db ./src/core/db
-COPY ./src/core/utils ./src/core/utils
 
 RUN chmod +x ${APP_DIR}/entrypoint.sh
 

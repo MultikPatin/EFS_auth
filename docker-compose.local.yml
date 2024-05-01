@@ -1,11 +1,38 @@
-name: PRACTIX_app
+name: PRACTIX
 services:
 
-  postgres_base:
+  elastic_content:
+    image: elasticsearch:${ELASTIC_VERSION}
+    container_name: ${ELASTIC_HOST}
+    restart: always
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    env_file:
+      - .env
+    volumes:
+      - elastic_content_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -s http://${ELASTIC_HOST}:${ELASTIC_PORT} >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 50
+      start_period: 10s
+    ports:
+      - "${ELASTIC_PORT}:9200"
+    networks:
+      - services
+
+  postgres_content:
     &base-postgres
     image: postgres:${POSTGRES_VERSION}
     container_name: ${POSTGRES_HOST}
     restart: always
+    env_file:
+      - env/content/.env.postgres
+    volumes:
+      - postgres_content_data:/var/lib/postgresql/data/
+      - ./db/postgres_content/:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 3s
@@ -16,14 +43,6 @@ services:
       - "${POSTGRES_PORT}:5432"
     networks:
       - services
-
-  postgres_content:
-    <<: *base-postgres
-    env_file:
-      - env/content/.env.postgres
-    volumes:
-      - postgres_content_data:/var/lib/postgresql/data/
-      - ./db/postgres/:/docker-entrypoint-initdb.d
 
   postgres_auth:
     <<: *base-postgres
@@ -46,11 +65,15 @@ services:
     networks:
       - services
 
-  redis_base:
+  redis_content:
     &base-redis
     image: redis:${REDIS_VERSION}
     container_name: ${REDIS_HOST}
     restart: always
+    env_file:
+      - env/content/.env.redis
+    volumes:
+      - redis_content_data:/var/lib/redis/data
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli", "ping" ]
       interval: 10s
@@ -61,13 +84,6 @@ services:
     networks:
       - services
 
-  redis_content:
-    <<: *base-redis
-    env_file:
-      - env/content/.env.redis
-    volumes:
-      - redis_content_data:/var/lib/redis/data
-
   redis_auth:
     <<: *base-redis
     env_file:
@@ -75,13 +91,32 @@ services:
     volumes:
       - redis_auth_data:/var/lib/redis/data
 
-  auth_service:
+  service_content:
+    &base-service
     build:
-      dockerfile: src/auth/Dockerfile
+      dockerfile: src/content/Dockerfile
     container_name: ${API_HOST}
     restart: always
+    env_file:
+      - env/content/.env.api
     environment:
       - LOCAL=False
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+    ports:
+      - "${API_PORT}:8000"
+    networks:
+      - services
+
+  service_auth:
+    <<: *base-service
+    build:
+      dockerfile: src/auth/Dockerfile
     env_file:
       - env/auth/.env.api
     depends_on:
@@ -89,10 +124,6 @@ services:
         condition: service_healthy
       redis_auth:
         condition: service_healthy
-    expose:
-      - "8000"
-    networks:
-      - services
 
   nginx:
     image: nginx:${NGINX_VERSION}
@@ -105,11 +136,19 @@ services:
     env_file:
       - env/.env.nginx
     depends_on:
-      postgres:
+      postgres_auth:
         condition: service_healthy
-      redis:
+      redis_auth:
         condition: service_healthy
-      api:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+      service_auth:
+        condition: service_started
+      service_content:
         condition: service_started
     ports:
       - "443:443"
@@ -119,9 +158,10 @@ services:
 
 
 volumes:
+  elastic_content_data:
   postgres_content_data:
-  postgres_auth_data:
   redis_content_data:
+  postgres_auth_data:
   redis_auth_data:
   static:
 
