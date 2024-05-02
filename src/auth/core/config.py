@@ -1,7 +1,7 @@
 import os
 from logging import config as logging_config
 
-from dotenv.main import find_dotenv, load_dotenv
+# from dotenv.main import find_dotenv, load_dotenv
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -10,14 +10,14 @@ from src.core.configs.auth_jwt import AuthJWTSettings
 from src.core.configs.postgres import PostgresSettings
 from src.core.configs.redis import RedisSettings
 
-load_dotenv(find_dotenv(".env.auth"))
+# load_dotenv(find_dotenv(".env.auth"))
 
 logging_config.dictConfig(LOGGING)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file="env/.env.auth", env_file_encoding="utf-8", extra="ignore"
+        env_file=("env/.env.auth",), env_file_encoding="utf-8", extra="ignore"
     )
     postgres: PostgresSettings = PostgresSettings()
 

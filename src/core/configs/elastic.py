@@ -1,10 +1,10 @@
 import os
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings
 
-load_dotenv(".env")
+# load_dotenv(".env")
 local = os.getenv("LOCAL", "True")
 
 
