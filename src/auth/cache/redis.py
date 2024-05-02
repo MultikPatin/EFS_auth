@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from uuid import UUID
 
 from src.auth.core.config import settings
@@ -133,6 +134,9 @@ class RedisCache(AbstractAuthCache, RedisBase):
             )
             raise
         return
+
+    def build_key(self, key_prefix: str, *args: Sequence) -> str:
+        pass
 
 
 redis: RedisCache | None = None

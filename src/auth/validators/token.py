@@ -17,7 +17,7 @@ def validate_token(token) -> Any:
     try:
         raw_jwt = decode(
             token,
-            key=settings.auth_jwt.authjwt_secret_key,
+            key=settings.authjwt_secret_key,
             algorithms=[
                 header_data["alg"],
             ],

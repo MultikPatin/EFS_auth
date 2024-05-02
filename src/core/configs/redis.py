@@ -1,10 +1,10 @@
 import os
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from pydantic.fields import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv(".env")
+# load_dotenv(".env")
 local = os.getenv("LOCAL", "True")
 
 
@@ -13,8 +13,9 @@ class RedisSettings(BaseSettings):
     This class is used to store the REDIS connection settings.
     """
 
-    host: str = Field(default=..., alias="REDIS_HOST")
-    port: int = Field(default=6379, alias="REDIS_PORT")
+    model_config = SettingsConfigDict(extra="ignore")
+    host: str = Field(..., alias="REDIS_HOST")
+    port: int = Field(..., alias="REDIS_PORT")
 
     def __correct_host(self) -> str:
         if local == "True":
