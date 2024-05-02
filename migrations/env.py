@@ -2,6 +2,7 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from pydantic_settings import SettingsConfigDict
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -9,32 +10,27 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.core.configs.postgres import PostgresSettings
 from src.core.db.entities import Entity
 
-settings = PostgresSettings()
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+class Settings(PostgresSettings):
+    model_config = SettingsConfigDict(
+        env_file="./infra/var/auth/.env.postgres",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+settings = Settings()
+
 config = context.config
 config.set_main_option(
     "sqlalchemy.url",
     settings.postgres_connection_url.render_as_string(hide_password=False),
 )
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 target_metadata = Entity.metadata
-
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def include_name(name, type_, parent_names):

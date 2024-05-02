@@ -1,0 +1,13 @@
+services:
+
+  redis_base:
+    image: redis:${REDIS_VERSION}
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 3s
+      retries: 3
+#      start_period: 1s
+    networks:
+      - services

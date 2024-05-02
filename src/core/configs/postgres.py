@@ -1,12 +1,12 @@
 import os
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from pydantic import SecretStr
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings
 from sqlalchemy import URL
 
-load_dotenv(".env")
+# load_dotenv(".env")
 local = os.getenv("LOCAL", "True")
 
 
@@ -19,7 +19,7 @@ class PostgresSettings(BaseSettings):
     user: str = Field(default=..., alias="POSTGRES_USER")
     password: SecretStr = Field(default=..., alias="POSTGRES_PASSWORD")
     host: str = Field(default=..., alias="POSTGRES_HOST")
-    port: int = Field(default=5432, alias="POSTGRES_PORT")
+    port: int = Field(default=..., alias="POSTGRES_PORT")
 
     def __correct_host(self) -> str:
         if local == "True":

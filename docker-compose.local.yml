@@ -23,34 +23,26 @@ services:
 #    networks:
 #      - services
 
-#  postgres_content:
-##    &base-postgres
-#    image: postgres:${POSTGRES_VERSION}
-#    container_name: ${POSTGRES_CONTAINER_NAME}
-#    restart: always
-#    env_file:
-#      - ../env/content/.env.postgres
-#    volumes:
-#      - postgres_content_data:/var/lib/postgresql/data/
-#      - ./postgres_content/:/docker-entrypoint-initdb.d
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready" ]
-#      interval: 3s
-#      timeout: 3s
-#      retries: 3
-#      start_period: 5s
-##    ports:
-##      - "${POSTGRES_PORT}:5432"
-#    networks:
-#      - services
+  postgres_content:
+    container_name: ${CONTENT_POSTGRES_HOST}
+    extends:
+      file: ./infra/docker/postgres.yml
+      service: postgres_base
+    env_file:
+      - infra/var/content/.env.postgres
+    volumes:
+      - postgres_content_data:/var/lib/postgresql/data/
+      - ./postgres_content/:/docker-entrypoint-initdb.d
+    ports:
+      - "${CONTENT_POSTGRES_PORT}:5432"
 
   postgres_auth:
     container_name: ${AUTH_POSTGRES_HOST}
     extends:
-      file: infra/docker/postgres.yml
+      file: ./infra/docker/postgres.yml
       service: postgres_base
     env_file:
-      - .env.auth
+      - infra/var/auth/.env.postgres
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data/
     ports:
@@ -63,39 +55,37 @@ services:
     environment:
       - LOCAL=False
     env_file:
-      - ../env/auth/.env.postgres
+      - infra/var/auth/.env.postgres
     depends_on:
       postgres_auth:
         condition: service_healthy
     networks:
       - services
 
-#  redis_content:
-#    &base-redis
-#    image: redis:${REDIS_VERSION}
-#    container_name: ${REDIS_HOST}
-#    restart: always
-#    env_file:
-#      - env/.env.content
-#    volumes:
-#      - redis_content_data:/var/lib/redis/data
-#    healthcheck:
-#      test: [ "CMD-SHELL", "redis-cli", "ping" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 3
-#    ports:
-#      - "${POSTGRES_PORT}:6379"
-#    networks:
-#      - services
-#
-#  redis_auth:
-#    <<: *base-redis
-#    env_file:
-#      - env/.env.auth
-#    volumes:
-#      - redis_auth_data:/var/lib/redis/data
-#
+  redis_content:
+    container_name: ${CONTENT_REDIS_HOST}
+    extends:
+      file: ./infra/docker/redis.yml
+      service: redis_base
+    env_file:
+      - infra/var/content/.env.redis
+    volumes:
+      - redis_content_data:/var/lib/redis/data
+    ports:
+      - "${CONTENT_REDIS_PORT}:6379"
+
+  redis_auth:
+    container_name: ${AUTH_REDIS_HOST}
+    extends:
+      file: ./infra/docker/redis.yml
+      service: redis_base
+    env_file:
+      - infra/var/auth/.env.redis
+    volumes:
+      - redis_auth_data:/var/lib/redis/data
+    ports:
+      - "${AUTH_REDIS_PORT}:6379"
+
 #  etl-content-movies:
 #      &base-etl
 #      build:

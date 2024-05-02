@@ -4,8 +4,8 @@ services:
     image: postgres:${POSTGRES_VERSION}
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
-      interval: 3s
+      test: [ "CMD-SHELL", "pg_isready -h ${AUTH_POSTGRES_HOST}" ]
+      interval: 10s
       timeout: 3s
       retries: 3
       start_period: 5s
