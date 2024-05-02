@@ -1,55 +1,60 @@
-name: PRACTIX_app
+name: practix
 services:
 
-  elastic_content:
-    image: elasticsearch:${ELASTIC_VERSION}
-    container_name: ${ELASTIC_HOST}
-    restart: always
-    environment:
-      - xpack.security.enabled=false
-      - "discovery.type=single-node"
-    env_file:
-      - .env
-    volumes:
-      - elastic_content_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: curl -s http://${ELASTIC_HOST}:${ELASTIC_PORT} >/dev/null || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 50
-      start_period: 10s
-    ports:
-      - "${ELASTIC_PORT}:9200"
-    networks:
-      - services
+#  elastic_content:
+#    image: elasticsearch:${ELASTIC_VERSION}
+#    container_name: ${ELASTIC_HOST}
+#    restart: always
+#    environment:
+#      - xpack.security.enabled=false
+#      - "discovery.type=single-node"
+#    env_file:
+#      - .env
+#    volumes:
+#      - elastic_content_data:/usr/share/elasticsearch/data
+#    healthcheck:
+#      test: curl -s http://${ELASTIC_HOST}:${ELASTIC_PORT} >/dev/null || exit 1
+#      interval: 30s
+#      timeout: 10s
+#      retries: 50
+#      start_period: 10s
+#    ports:
+#      - "${ELASTIC_PORT}:9200"
+#    networks:
+#      - services
 
-  postgres_content:
-    &base-postgres
-    image: postgres:${POSTGRES_VERSION}
-    container_name: ${POSTGRES_HOST}
-    restart: always
-    env_file:
-      - env/.env.content
-    volumes:
-      - postgres_content_data:/var/lib/postgresql/data/
-      - ./postgres_content/:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-      interval: 3s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
-    ports:
-      - "${POSTGRES_PORT}:5432"
-    networks:
-      - services
+#  postgres_content:
+##    &base-postgres
+#    image: postgres:${POSTGRES_VERSION}
+#    container_name: ${POSTGRES_CONTAINER_NAME}
+#    restart: always
+#    env_file:
+#      - ../env/content/.env.postgres
+#    volumes:
+#      - postgres_content_data:/var/lib/postgresql/data/
+#      - ./postgres_content/:/docker-entrypoint-initdb.d
+#    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready" ]
+#      interval: 3s
+#      timeout: 3s
+#      retries: 3
+#      start_period: 5s
+##    ports:
+##      - "${POSTGRES_PORT}:5432"
+#    networks:
+#      - services
 
   postgres_auth:
-    <<: *base-postgres
+    container_name: ${AUTH_POSTGRES_HOST}
+    extends:
+      file: infra/docker/postgres.yml
+      service: postgres_base
     env_file:
-      - env/.env.auth
+      - .env.auth
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data/
+    ports:
+      - "${AUTH_POSTGRES_PORT}:5432"
 
   migrations_auth:
     build:
@@ -58,145 +63,145 @@ services:
     environment:
       - LOCAL=False
     env_file:
-      - env/.env.auth
+      - ../env/auth/.env.postgres
     depends_on:
       postgres_auth:
         condition: service_healthy
     networks:
       - services
 
-  redis_content:
-    &base-redis
-    image: redis:${REDIS_VERSION}
-    container_name: ${REDIS_HOST}
-    restart: always
-    env_file:
-      - env/.env.content
-    volumes:
-      - redis_content_data:/var/lib/redis/data
-    healthcheck:
-      test: [ "CMD-SHELL", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    ports:
-      - "${POSTGRES_PORT}:6379"
-    networks:
-      - services
-
-  redis_auth:
-    <<: *base-redis
-    env_file:
-      - env/.env.auth
-    volumes:
-      - redis_auth_data:/var/lib/redis/data
-
-  etl-content-movies:
-      &base-etl
-      build:
-        dockerfile: src/etl_content/Dockerfile
-      container_name: etl-content-movies
-      restart: always
-      environment:
-        - ETL_NAME=movies
-      env_file:
-        - env/.env.content
-      depends_on:
-        postgres_content:
-          condition: service_healthy
-        elastic_content:
-          condition: service_healthy
-      networks:
-        - services
-
-  etl-content-genres:
-    <<: *base-etl
-    container_name: etl-content-genres
-    environment:
-      - ETL_NAME=genres
-
-  etl-content-persons:
-    <<: *base-etl
-    container_name: etl-content-persons
-    environment:
-      - ETL_NAME=persons
-
-  service_content:
-    &base-service
-    build:
-      dockerfile: src/content/Dockerfile
-    container_name: ${API_HOST}
-    restart: always
-    env_file:
-      - env/.env.content
-    environment:
-      - LOCAL=False
-    depends_on:
-      postgres_content:
-        condition: service_healthy
-      elastic_content:
-        condition: service_healthy
-      redis_content:
-        condition: service_healthy
-    expose:
-      - "8000"
-    networks:
-      - services
-
-  service_auth:
-    <<: *base-service
-    build:
-      dockerfile: src/auth/Dockerfile
-    env_file:
-      - env/.env.auth
-    depends_on:
-      postgres_auth:
-        condition: service_healthy
-      redis_auth:
-        condition: service_healthy
-
-  service_admin:
-    <<: *base-service
-    build:
-      dockerfile: src/admin/Dockerfile
-    env_file:
-      - env/.env.admin
-      - env/.env.content
-    volumes:
-      - static:/backend_static
-    postgres_content:
-      condition: service_healthy
-
-  nginx:
-    image: nginx:${NGINX_VERSION}
-    container_name: ${NGINX_HOST}
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/configs:/etc/nginx/conf.d:ro
-      - static:/staticfiles/
-    restart: unless-stopped
-    env_file:
-      - env/.env.nginx
-    depends_on:
-      postgres_auth:
-        condition: service_healthy
-      redis_auth:
-        condition: service_healthy
-      postgres_content:
-        condition: service_healthy
-      elastic_content:
-        condition: service_healthy
-      redis_content:
-        condition: service_healthy
-      service_auth:
-        condition: service_started
-      service_content:
-        condition: service_started
-    ports:
-      - "443:443"
-      - "80:80"
-    networks:
-      - services
+#  redis_content:
+#    &base-redis
+#    image: redis:${REDIS_VERSION}
+#    container_name: ${REDIS_HOST}
+#    restart: always
+#    env_file:
+#      - env/.env.content
+#    volumes:
+#      - redis_content_data:/var/lib/redis/data
+#    healthcheck:
+#      test: [ "CMD-SHELL", "redis-cli", "ping" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#    ports:
+#      - "${POSTGRES_PORT}:6379"
+#    networks:
+#      - services
+#
+#  redis_auth:
+#    <<: *base-redis
+#    env_file:
+#      - env/.env.auth
+#    volumes:
+#      - redis_auth_data:/var/lib/redis/data
+#
+#  etl-content-movies:
+#      &base-etl
+#      build:
+#        dockerfile: src/etl_content/Dockerfile
+#      container_name: etl-content-movies
+#      restart: always
+#      environment:
+#        - ETL_NAME=movies
+#      env_file:
+#        - env/.env.content
+#      depends_on:
+#        postgres_content:
+#          condition: service_healthy
+#        elastic_content:
+#          condition: service_healthy
+#      networks:
+#        - services
+#
+#  etl-content-genres:
+#    <<: *base-etl
+#    container_name: etl-content-genres
+#    environment:
+#      - ETL_NAME=genres
+#
+#  etl-content-persons:
+#    <<: *base-etl
+#    container_name: etl-content-persons
+#    environment:
+#      - ETL_NAME=persons
+#
+#  service_content:
+#    &base-service
+#    build:
+#      dockerfile: src/content/Dockerfile
+#    container_name: ${API_HOST}
+#    restart: always
+#    env_file:
+#      - env/.env.content
+#    environment:
+#      - LOCAL=False
+#    depends_on:
+#      postgres_content:
+#        condition: service_healthy
+#      elastic_content:
+#        condition: service_healthy
+#      redis_content:
+#        condition: service_healthy
+#    expose:
+#      - "8000"
+#    networks:
+#      - services
+#
+#  service_auth:
+#    <<: *base-service
+#    build:
+#      dockerfile: src/auth/Dockerfile
+#    env_file:
+#      - env/.env.auth
+#    depends_on:
+#      postgres_auth:
+#        condition: service_healthy
+#      redis_auth:
+#        condition: service_healthy
+#
+#  service_admin:
+#    <<: *base-service
+#    build:
+#      dockerfile: src/admin/Dockerfile
+#    env_file:
+#      - env/.env.admin
+#      - env/.env.content
+#    volumes:
+#      - static:/backend_static
+#    postgres_content:
+#      condition: service_healthy
+#
+#  nginx:
+#    image: nginx:${NGINX_VERSION}
+#    container_name: ${NGINX_HOST}
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ./nginx/configs:/etc/nginx/conf.d:ro
+#      - static:/staticfiles/
+#    restart: unless-stopped
+#    env_file:
+#      - env/.env.nginx
+#    depends_on:
+#      postgres_auth:
+#        condition: service_healthy
+#      redis_auth:
+#        condition: service_healthy
+#      postgres_content:
+#        condition: service_healthy
+#      elastic_content:
+#        condition: service_healthy
+#      redis_content:
+#        condition: service_healthy
+#      service_auth:
+#        condition: service_started
+#      service_content:
+#        condition: service_started
+#    ports:
+#      - "443:443"
+#      - "80:80"
+#    networks:
+#      - services
 
 
 volumes:
