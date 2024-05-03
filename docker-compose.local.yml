@@ -88,15 +88,16 @@ services:
       - "${AUTH_REDIS_PORT}:6379"
 
   etl_content_movies:
-#      &base-etl
       build:
         dockerfile: src/etl_content/Dockerfile
-      container_name: etl-content-movies
       restart: always
       environment:
         - ETL_NAME=movies
+        - LOCAL=False
       env_file:
-        - env/.env.content
+        - ./infra/var/content/.env.etl
+        - ./infra/var/content/.env.postgres
+        - ./infra/var/content/.env.elastic
       depends_on:
         postgres_content:
           condition: service_healthy
@@ -104,19 +105,43 @@ services:
           condition: service_healthy
       networks:
         - services
-#
-#  etl_content_genres:
-#    <<: *base-etl
-#    container_name: etl-content-genres
-#    environment:
-#      - ETL_NAME=genres
-#
-#  etl_content_persons:
-#    <<: *base-etl
-#    container_name: etl-content-persons
-#    environment:
-#      - ETL_NAME=persons
-#
+
+  etl_content_genres:
+    build:
+      dockerfile: src/etl_content/Dockerfile
+    environment:
+      - ETL_NAME=genres
+      - LOCAL=False
+    env_file:
+      - ./infra/var/content/.env.etl
+      - ./infra/var/content/.env.postgres
+      - ./infra/var/content/.env.elastic
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+    networks:
+      - services
+
+  etl_content_persons:
+    build:
+      dockerfile: src/etl_content/Dockerfile
+    environment:
+      - ETL_NAME=persons
+      - LOCAL=False
+    env_file:
+      - ./infra/var/content/.env.etl
+      - ./infra/var/content/.env.postgres
+      - ./infra/var/content/.env.elastic
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+    networks:
+      - services
+
 #  service_content:
 #    &base-service
 #    build:

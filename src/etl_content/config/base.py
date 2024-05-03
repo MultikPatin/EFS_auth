@@ -29,9 +29,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-print("ETL settings.model_dump()")
-print(settings.model_dump())
-
 _ELASTIC_SETTINGS = {
     "refresh_interval": "1s",
     "analysis": {

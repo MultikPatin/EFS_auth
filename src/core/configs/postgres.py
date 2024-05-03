@@ -1,6 +1,7 @@
 import os
 
 # from dotenv import load_dotenv
+from psycopg2.extras import DictCursor
 from pydantic import SecretStr
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,6 +38,17 @@ class PostgresSettings(BaseSettings):
             port=self.port,
             database=self.database,
         )
+
+    @property
+    def psycopg2_connect(self) -> dict:
+        return {
+            "dbname": self.database,
+            "user": self.user,
+            "password": self.password.get_secret_value(),
+            "host": self.host,
+            "port": self.port,
+            "cursor_factory": DictCursor,
+        }
 
 
 # def get_postgres_settings() -> PostgresSettings:
