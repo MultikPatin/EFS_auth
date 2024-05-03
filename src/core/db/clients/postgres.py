@@ -3,20 +3,24 @@ import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
 
-from src.core.configs.postgres import PostgresSettings, get_postgres_settings
+from src.core.configs.postgres import PostgresSettings
 from src.core.db.clients.abstract import AbstractDBClient
 
 sqlalchemy_echo = os.getenv("SQLALCHEMY_ECHO", "True") == "True"
 
 logger = logging.getLogger(__name__)
 logger.level = logging.DEBUG
+
+settings = PostgresSettings(
+    _env_file="./infra/var/auth/.env.postgres",
+    _env_file_encoding="utf-8",
+)
 
 
 class PostgresDatabase(AbstractDBClient):
@@ -42,7 +46,5 @@ class PostgresDatabase(AbstractDBClient):
             await session.close()
 
 
-def get_postgres_db(
-    settings: PostgresSettings = Depends(get_postgres_settings, use_cache=True),
-) -> PostgresDatabase:
+def get_postgres_db() -> PostgresDatabase:
     return PostgresDatabase(settings)

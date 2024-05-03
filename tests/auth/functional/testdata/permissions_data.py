@@ -1,7 +1,4 @@
-from tests.auth.functional import (
-    id_good_1,
-    id_good_2
-)
+from tests.auth.functional.testdata.base_data import id_good_1, id_good_2
 
 
 permissions_creation_data = {
@@ -11,27 +8,27 @@ permissions_creation_data = {
 permission_1 = {
     "uuid": id_good_1,
     "description": "Не тот кто каждый поймет",
-    "name": "Артхаус"
+    "name": "Артхаус",
 }
 
 permission_2 = {
     "uuid": id_good_2,
     "description": "кмоу-то интересно",
-    "name": "Спорт"
+    "name": "Спорт",
 }
 permission_request_create = {
     "description": "Не тот кто каждый поймет",
-    "name": "Артхаус"
+    "name": "Артхаус",
 }
 
 invalid_too_long_name = {
     "description": "Не тот кто каждый поймет",
-    "name": "f" * 65
+    "name": "f" * 65,
 }
 
 invalid_too_short_name = {
     "description": "Не тот кто каждый поймет",
-    "name": "f" * 0
+    "name": "f" * 0,
 }
 
 del_query = f"""

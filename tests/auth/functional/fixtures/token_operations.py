@@ -1,6 +1,6 @@
 import pytest
 import jwt
-from tests.auth.functional import settings
+from tests.auth.functional.settings import settings
 from tests.auth.functional.testdata.tokens_data import CacheTokens, UserClaims
 from fastapi import HTTPException
 from http import HTTPStatus
@@ -24,25 +24,33 @@ def validate_token():
                 detail=f"{e}: invalid token",
             ) from None
         return raw_jwt
+
     return inner
 
 
-async def create_token(user_claims: UserClaims, token_type: str, secret_key: str):
+async def create_token(
+    user_claims: UserClaims, token_type: str, secret_key: str
+):
     payload = user_claims.model_dump()
-    payload.update({
-                "sub": user_claims.user_uuid,
-                'type': token_type
-            })
+    payload.update({"sub": user_claims.user_uuid, "type": token_type})
     return jwt.encode(
-            payload=payload,
-            key=secret_key,
-        )
+        payload=payload,
+        key=secret_key,
+    )
 
 
 @pytest.fixture
 def create_tokens():
-    async def inner(user_claims: UserClaims, secret_key: str = settings.secret_key) -> CacheTokens:
+    async def inner(
+        user_claims: UserClaims, secret_key: str = settings.secret_key
+    ) -> CacheTokens:
         new_access_token = await create_token(user_claims, "access", secret_key)
-        new_refresh_token = await create_token(user_claims, "refresh", secret_key)
-        return CacheTokens(access_token_cookie=new_access_token, refresh_token_cookie=new_refresh_token)
+        new_refresh_token = await create_token(
+            user_claims, "refresh", secret_key
+        )
+        return CacheTokens(
+            access_token_cookie=new_access_token,
+            refresh_token_cookie=new_refresh_token,
+        )
+
     return inner

@@ -39,5 +39,5 @@ class PostgresSettings(BaseSettings):
         )
 
 
-def get_postgres_settings() -> PostgresSettings:
-    return PostgresSettings()
+# def get_postgres_settings() -> PostgresSettings:
+#     return PostgresSettings()

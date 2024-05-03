@@ -26,7 +26,6 @@ class Settings(BaseSettings):
         _env_file="./infra/var/auth/.env.postgres",
         _env_file_encoding="utf-8",
     )
-    #
     redis: RedisSettings = RedisSettings(
         _env_file="./infra/var/auth/.env.redis",
         _env_file_encoding="utf-8",

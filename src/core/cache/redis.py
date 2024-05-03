@@ -5,22 +5,22 @@ from redis.asyncio import Redis
 
 
 class RedisBase:
-    __redis: Redis
-    __logger: Logger
+    _redis: Redis
+    _logger: Logger
 
     def __init__(self, redis: Redis, logger: Logger):
-        self.__redis = redis
-        self.__logger = logger
+        self._redis = redis
+        self._logger = logger
 
     async def close(self) -> None:
         """
         Закрыть соединение с Redis.
         """
-        await self.__redis.aclose()
-        self.__logger.info("Connection to Redis was closed.")
+        await self._redis.aclose()
+        self._logger.info("Connection to Redis was closed.")
 
     async def ping(self) -> Any:
         """
         Ping the Redis server to ensure the connection is still alive.
         """
-        return await self.__redis.ping()
+        return await self._redis.ping()

@@ -1,4 +1,4 @@
-from tests.functional.testdata.base_data import id_good_1, id_good_2
+from tests.content.functional.testdata.base_data import id_good_1, id_good_2
 
 es_persons_data_1 = {
     "full_name": "Antonio Banderas",

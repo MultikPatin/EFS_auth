@@ -8,9 +8,17 @@ from tests.auth.functional.testdata.tokens_data import (
     token_invalid_password_request_login,
 )
 from tests.auth.functional.testdata.tokens_data import UserClaims
-from tests.auth.functional import del_query as del_query_role, del_query_role_perm
-from tests.auth.functional import del_query as del_query_user, del_history_query, user_super_data, role_super_data
-from tests.auth.functional import (
+from tests.auth.functional.testdata.roles_data import (
+    del_query as del_query_role,
+    del_query_role_perm,
+)
+from tests.auth.functional.testdata.users_data import (
+    del_query as del_query_user,
+    del_history_query,
+    user_super_data,
+    role_super_data,
+)
+from tests.auth.functional.testdata.base_data import (
     id_super,
     id_good_1,
     id_good_2,
@@ -67,11 +75,14 @@ async def test_login(
 
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
-        access_token_cookie = cookies.get('access_token_cookie').coded_value
-        refresh_token_cookie = cookies.get('refresh_token_cookie').coded_value
+        access_token_cookie = cookies.get("access_token_cookie").coded_value
+        refresh_token_cookie = cookies.get("refresh_token_cookie").coded_value
         user_data = await validate_token(access_token_cookie)
         assert user_data.get("user_uuid") == id_super
-        cahche_token = [str(token, encoding=("utf-8")) for token in await get_tokens(id_super)]
+        cahche_token = [
+            str(token, encoding=("utf-8"))
+            for token in await get_tokens(id_super)
+        ]
         assert refresh_token_cookie in cahche_token
 
 
@@ -108,19 +119,22 @@ async def test_refresh(
     path = "/tokens/refresh/"
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
     response = await make_post_request(path, cookies=cookies)
     _, status, cookies = response
 
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
-        access_token_cookie = cookies.get('access_token_cookie').coded_value
+        access_token_cookie = cookies.get("access_token_cookie").coded_value
         user_data = await validate_token(access_token_cookie)
         assert user_data.get("user_uuid") == query_data
-        cahche_tokens = [str(token, encoding=("utf-8")) for token in await get_tokens(query_data)]
-        assert not tokens.refresh_token_cookie  in cahche_tokens
-        assert cookies.get('refresh_token_cookie').coded_value in cahche_tokens
+        cahche_tokens = [
+            str(token, encoding=("utf-8"))
+            for token in await get_tokens(query_data)
+        ]
+        assert not tokens.refresh_token_cookie in cahche_tokens
+        assert cookies.get("refresh_token_cookie").coded_value in cahche_tokens
 
 
 @pytest.mark.parametrize(
@@ -154,7 +168,7 @@ async def test_verify(
     path = "/tokens/verify/"
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
     response = await make_post_request(path, cookies=cookies)
     _, status, _ = response
@@ -194,14 +208,18 @@ async def test_logout(
     path = "/tokens/logout/"
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
-    response = await make_post_request(path, query_data=query_data, cookies=cookies)
+    response = await make_post_request(
+        path, query_data=query_data, cookies=cookies
+    )
     _, status, _ = response
 
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
         cache_tokens = await get_tokens(query_data)
         if cache_tokens and not query_data.get("for_all_sessions"):
-            cahche_tokens = [str(token, encoding=("utf-8")) for token in cache_tokens]
+            cahche_tokens = [
+                str(token, encoding=("utf-8")) for token in cache_tokens
+            ]
             assert not tokens.refresh_token_cookie in cahche_tokens

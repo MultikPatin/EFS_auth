@@ -4,7 +4,7 @@ from json import JSONDecodeError
 import pytest
 import aiohttp
 
-from tests.functional.settings import settings
+from tests.content.functional.settings import settings
 
 pytest_plugins = (
     "tests.functional.fixtures.connections",

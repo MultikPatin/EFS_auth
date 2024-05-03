@@ -1,5 +1,5 @@
 import uuid
-from tests.functional.testdata.base_data import id_good_1, id_good_2
+from tests.content.functional.testdata.base_data import id_good_1, id_good_2
 
 es_films_data_1 = {
     "imdb_rating": 8.5,

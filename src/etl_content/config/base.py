@@ -1,4 +1,4 @@
-from dotenv.main import find_dotenv, load_dotenv
+# from dotenv.main import find_dotenv, load_dotenv
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings
 from pydantic_settings.main import SettingsConfigDict
@@ -6,20 +6,31 @@ from pydantic_settings.main import SettingsConfigDict
 from src.core.configs.elastic import ElasticSettings
 from src.core.configs.postgres import PostgresSettings
 
-load_dotenv(find_dotenv(".env"))
+# load_dotenv(find_dotenv(".env"))
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file="./infra/var/content/.env.etl",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
-    postgres: PostgresSettings = PostgresSettings()
-    elastic: ElasticSettings = ElasticSettings()
+    postgres: PostgresSettings = PostgresSettings(
+        _env_file="./infra/var/content/.env.postgres",
+        _env_file_encoding="utf-8",
+    )
+    elastic: ElasticSettings = ElasticSettings(
+        _env_file="./infra/var/content/.env.elastic",
+        _env_file_encoding="utf-8",
+    )
     buffer_size: int = Field(..., alias="ETL_BUFFERED_ROWS")
     sleep_time: int = Field(..., alias="ETL_SLEEP_TIME")
 
 
 settings = Settings()
+
+print("ETL settings.model_dump()")
+print(settings.model_dump())
 
 _ELASTIC_SETTINGS = {
     "refresh_interval": "1s",

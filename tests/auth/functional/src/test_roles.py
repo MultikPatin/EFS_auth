@@ -1,25 +1,34 @@
 import pytest
 from http import HTTPStatus
 
-from tests.auth.functional import (
+from tests.auth.functional.testdata.roles_data import (
     roles_creation_data,
     role_request_create,
     invalid_too_long_name,
     invalid_too_short_name,
     del_query as del_query_role,
-    del_query_role_perm
+    del_query_role_perm,
 )
 from tests.auth.functional.testdata.tokens_data import UserClaims
-from tests.auth.functional import del_query as del_query_user, user_super_data, role_super_data
-from tests.auth.functional import del_query as del_query_permissions, permission_1, permission_2
-from tests.auth.functional import (
+from tests.auth.functional.testdata.users_data import (
+    del_query as del_query_user,
+    user_super_data,
+    role_super_data,
+)
+from tests.auth.functional.testdata.permissions_data import (
+    del_query as del_query_permissions,
+    permission_1,
+    permission_2,
+)
+from tests.auth.functional.testdata.base_data import (
     ids,
     id_super,
     id_good_1,
     id_good_2,
     id_bad,
-    id_invalid
+    id_invalid,
 )
+
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
@@ -55,10 +64,10 @@ async def test_list_roles(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
-    template = [{"uuid": id} for id in ids[:expected_answer.get("length")]]
+    template = [{"uuid": id} for id in ids[: expected_answer.get("length")]]
     for index, id in enumerate(template):
         id.update(roles_creation_data)
         id.update({"name": f"+18{str(index)}"})
@@ -84,7 +93,7 @@ async def test_list_roles(
             {
                 "status": HTTPStatus.OK,
                 "description": "Материалы для взрослых",
-                "name": "+18"
+                "name": "+18",
             },
         ),
         (
@@ -122,7 +131,7 @@ async def test_create_role(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = "/roles/"
@@ -143,11 +152,20 @@ async def test_create_role(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "description", "name"],
+                "keys": [
+                    "created_at",
+                    "updated_at",
+                    "uuid",
+                    "description",
+                    "name",
+                ],
             },
         ),
         ({"role_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"role_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"role_uuid": id_invalid},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -175,7 +193,7 @@ async def test_get_role(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -209,10 +227,14 @@ async def test_get_role(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "description", "name"],
-                "pathced_data": {
-                    "description": "Приостановленный доступ"
-                },
+                "keys": [
+                    "created_at",
+                    "updated_at",
+                    "uuid",
+                    "description",
+                    "name",
+                ],
+                "pathced_data": {"description": "Приостановленный доступ"},
             },
         ),
         (
@@ -222,7 +244,7 @@ async def test_get_role(
                 "pathced_data": {
                     "description": "",
                 },
-            }
+            },
         ),
     ],
 )
@@ -251,7 +273,7 @@ async def test_patch_role(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -264,7 +286,9 @@ async def test_patch_role(
         await postgres_write_data(template, table)
 
     path = f"/roles/{query_data.get('role_uuid')}"
-    response = await make_patch_request(path, body=expected_answer.get("pathced_data"), cookies=cookies)
+    response = await make_patch_request(
+        path, body=expected_answer.get("pathced_data"), cookies=cookies
+    )
     body, status, _ = response
 
     assert status == expected_answer.get("status")
@@ -286,12 +310,15 @@ async def test_patch_role(
                 "status": HTTPStatus.OK,
                 "body": {
                     "code": HTTPStatus.OK,
-                    "details": "Role deleted successfully"
+                    "details": "Role deleted successfully",
                 },
             },
         ),
         ({"role_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"role_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"role_uuid": id_invalid},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -319,7 +346,7 @@ async def test_delete_role(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -351,7 +378,10 @@ async def test_delete_role(
             },
         ),
         ({"role_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"role_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"role_uuid": id_invalid},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -378,13 +408,13 @@ async def test_get_role_permissions(
         {
             "uuid": id_good_1,
             "role_uuid": id_super,
-            "permission_uuid": id_good_1
+            "permission_uuid": id_good_1,
         },
         {
             "uuid": id_good_2,
             "role_uuid": id_super,
-            "permission_uuid": id_good_2
-        }
+            "permission_uuid": id_good_2,
+        },
     ]
     await postgres_write_data(relations, "roles_permissions")
 
@@ -395,11 +425,13 @@ async def test_get_role_permissions(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = f"/roles/{query_data.get('role_uuid')}/permissions/"
-    response = await make_get_request(path, query_data=query_data, cookies=cookies)
+    response = await make_get_request(
+        path, query_data=query_data, cookies=cookies
+    )
     body, status, _ = response
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
@@ -414,11 +446,17 @@ async def test_get_role_permissions(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_super,
-                "permissions": [{"uuid": id_good_1, "name": "Артхаус"}]
+                "permissions": [{"uuid": id_good_1, "name": "Артхаус"}],
             },
         ),
-        ({"role_uuid": id_bad, "permission_uuid": id_good_1}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"role_uuid": id_invalid, "permission_uuid": id_good_1}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"role_uuid": id_bad, "permission_uuid": id_good_1},
+            {"status": HTTPStatus.NOT_FOUND},
+        ),
+        (
+            {"role_uuid": id_invalid, "permission_uuid": id_good_1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -449,11 +487,13 @@ async def test_add_role_permissions(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = f"/roles/{query_data.get('role_uuid')}/permissions/{query_data.get('permission_uuid')}/"
-    response = await make_post_request(path, query_data=query_data, cookies=cookies)
+    response = await make_post_request(
+        path, query_data=query_data, cookies=cookies
+    )
     body, status, _ = response
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
@@ -470,8 +510,14 @@ async def test_add_role_permissions(
                 "status": HTTPStatus.OK,
             },
         ),
-        ({"role_uuid": id_bad, "permission_uuid": id_good_1}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"role_uuid": id_invalid, "permission_uuid": id_good_1}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"role_uuid": id_bad, "permission_uuid": id_good_1},
+            {"status": HTTPStatus.NOT_FOUND},
+        ),
+        (
+            {"role_uuid": id_invalid, "permission_uuid": id_good_1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -501,13 +547,13 @@ async def test_remove_role_permissions(
         {
             "uuid": id_good_1,
             "role_uuid": id_super,
-            "permission_uuid": id_good_1
+            "permission_uuid": id_good_1,
         },
         {
             "uuid": id_good_2,
             "role_uuid": id_super,
-            "permission_uuid": id_good_2
-        }
+            "permission_uuid": id_good_2,
+        },
     ]
     await postgres_write_data(relations, "roles_permissions")
 
@@ -518,10 +564,12 @@ async def test_remove_role_permissions(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = f"/roles/{query_data.get('role_uuid')}/permissions/{query_data.get('permission_uuid')}/"
-    response = await make_delete_request(path, query_data=query_data, cookies=cookies)
+    response = await make_delete_request(
+        path, query_data=query_data, cookies=cookies
+    )
     _, status, _ = response
     assert status == expected_answer.get("status")

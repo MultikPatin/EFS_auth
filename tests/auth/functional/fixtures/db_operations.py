@@ -3,14 +3,16 @@ import pytest
 from redis.asyncio import Redis
 from psycopg2.extensions import connection as _connection
 from psycopg2.extras import execute_values
-from tests.auth.functional import settings
+from tests.auth.functional.settings import settings
 
 
 @pytest.fixture
 def transform_data():
     async def inner(data: list[dict]):
         return [[value for value in item.values()] for item in data]
+
     return inner
+
 
 @pytest.fixture
 def make_query():
@@ -20,10 +22,14 @@ def make_query():
             ON CONFLICT (uuid) DO NOTHING;
         """
         return write_query
+
     return inner
 
+
 @pytest.fixture
-def postgres_write_data(postgres_client: _connection, transform_data, make_query: str):
+def postgres_write_data(
+    postgres_client: _connection, transform_data, make_query: str
+):
     async def inner(data: list[dict], table: str):
         columns = data[0].keys()
         query = await make_query(table, columns)
@@ -38,6 +44,7 @@ def postgres_write_data(postgres_client: _connection, transform_data, make_query
         finally:
             if postgres_client:
                 cursor.close()
+
     return inner
 
 
@@ -54,6 +61,7 @@ def postgres_execute(postgres_client: _connection):
         finally:
             if postgres_client:
                 cursor.close()
+
     return inner
 
 
@@ -63,6 +71,7 @@ def clear_cache(redis_client: Redis):
         await redis_client.flushdb(asynchronous=True)
 
     return inner
+
 
 @pytest.fixture
 def set_token(redis_client: Redis):
@@ -78,6 +87,7 @@ def set_token(redis_client: Redis):
             await redis_client.set(key, value, token_expire_in_sec)
         except Exception:
             raise Exception
+
     return inner
 
 
@@ -97,6 +107,7 @@ def get_tokens(redis_client: Redis):
         except Exception:
             raise Exception
         return values
+
     return inner
 
 
@@ -107,7 +118,9 @@ def delete_tokens(redis_client: Redis):
             key_pattern = uuid
             max_sessions = settings.user_max_sessions
             keys = []
-            async for key in redis_client.scan_iter(f"{str(key_pattern)}:*", 10000):
+            async for key in redis_client.scan_iter(
+                f"{str(key_pattern)}:*", 10000
+            ):
                 keys.append(key)
                 if len(keys) == max_sessions:
                     break
@@ -120,4 +133,5 @@ def delete_tokens(redis_client: Redis):
             await redis_client.delete(*keys)
         except Exception:
             raise Exception
+
     return inner

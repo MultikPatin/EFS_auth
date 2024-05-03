@@ -4,7 +4,7 @@ import pytest
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
 
-from tests.functional.settings import settings
+from tests.content.functional.settings import settings
 
 from redis.asyncio import Redis
 

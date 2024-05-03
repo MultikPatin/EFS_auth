@@ -1,13 +1,13 @@
 import pytest
 from http import HTTPStatus
 
-from tests.functional.testdata.films_data import (
+from tests.content.functional.testdata.films_data import (
     es_films_data_1,
     es_films_data_2,
     genres_data,
 )
 
-from tests.functional.testdata.base_data import (
+from tests.content.functional.testdata.base_data import (
     id_good_1,
     id_bad,
     id_invalid,
