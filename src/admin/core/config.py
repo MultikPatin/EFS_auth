@@ -11,7 +11,10 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    postgres: PostgresSettings = PostgresSettings()
+    postgres: PostgresSettings = PostgresSettings(
+        _env_file="./infra/var/content/.env.postgres",
+        _env_file_encoding="utf-8",
+    )
     allowed_hosts: str = Field(default=..., alias="ALLOWED_HOSTS")
     debug: str = Field(default=..., alias="DEBUG")
     secret_key: SecretStr = Field(default=..., alias="SECRET_KEY")
