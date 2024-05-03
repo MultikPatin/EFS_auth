@@ -30,9 +30,9 @@ class RedisCache(AbstractModelCache, RedisBase):
         """
         data = value.model_dump_json()
         try:
-            await self.__redis.set(key, data, cache_expire)
+            await self._redis.set(key, data, cache_expire)
         except Exception as set_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error setting value with key `%s::%s`: %s.",
                 key,
                 value,
@@ -55,11 +55,11 @@ class RedisCache(AbstractModelCache, RedisBase):
 
         """
         try:
-            value = await self.__redis.get(key)
+            value = await self._redis.get(key)
             if not value:
                 return None
         except Exception as get_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error getting value with key `%s`: %s.", key, get_error
             )
             raise
@@ -83,10 +83,10 @@ class RedisCache(AbstractModelCache, RedisBase):
         """
         try:
             for value in values:
-                await self.__redis.lpush(key, value.model_dump_json())  # type: ignore
-            await self.__redis.expire(key, cache_expire)
+                await self._redis.lpush(key, value.model_dump_json())  # type: ignore
+            await self._redis.expire(key, cache_expire)
         except Exception as set_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error setting values with key `%s::%s`: %s.",
                 key,
                 values,
@@ -109,13 +109,13 @@ class RedisCache(AbstractModelCache, RedisBase):
 
         """
         try:
-            list_count = await self.__redis.llen(key)  # type: ignore
-            values = await self.__redis.lrange(key, 0, list_count)  # type: ignore
+            list_count = await self._redis.llen(key)  # type: ignore
+            values = await self._redis.lrange(key, 0, list_count)  # type: ignore
             values.reverse()
             if not values:
                 return None
         except Exception as get_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error getting values with key `%s`: %s.", key, get_error
             )
             raise
@@ -137,13 +137,13 @@ class RedisCache(AbstractModelCache, RedisBase):
 
         """
         if not key_prefix:
-            self.__logger.error("Key prefix value is required")
+            self._logger.error("Key prefix value is required")
             raise
         key = ""
         for arg in args:
             key += f"{str(arg)}:"
         if not key:
-            self.__logger.error("key value is required")
+            self._logger.error("key value is required")
             raise
         return f"{key_prefix}-{key}"
 

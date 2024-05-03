@@ -142,27 +142,28 @@ services:
     networks:
       - services
 
-#  service_content:
-#    &base-service
-#    build:
-#      dockerfile: src/content/Dockerfile
-#    container_name: ${API_HOST}
-#    restart: always
-#    env_file:
-#      - env/.env.content
-#    environment:
-#      - LOCAL=False
-#    depends_on:
-#      postgres_content:
-#        condition: service_healthy
-#      elastic_content:
-#        condition: service_healthy
-#      redis_content:
-#        condition: service_healthy
-#    expose:
-#      - "8000"
-#    networks:
-#      - services
+  service_content:
+    build:
+      dockerfile: src/content/Dockerfile
+    container_name: ${CONTENT_API_HOST}
+    restart: always
+    env_file:
+      - infra/var/content/.env.api
+      - infra/var/content/.env.elastic
+      - infra/var/content/.env.redis
+    environment:
+      - LOCAL=False
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+    ports:
+      - "${CONTENT_API_PORT}:8000"
+    networks:
+      - services
 
   service_auth:
     build:
