@@ -14,15 +14,15 @@ logging_config.dictConfig(LOGGING)
 
 class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/var/auth/.env.api",
+        env_file="./infra/env/auth/.env.api",
         env_file_encoding="utf-8",
     )
     postgres: PostgresSettings = PostgresSettings(
-        _env_file="./infra/var/auth/.env.postgres",
+        _env_file="./infra/env/auth/.env.postgres",
         _env_file_encoding="utf-8",
     )
     redis: RedisSettings = RedisSettings(
-        _env_file="./infra/var/auth/.env.redis",
+        _env_file="./infra/env/auth/.env.redis",
         _env_file_encoding="utf-8",
     )
 

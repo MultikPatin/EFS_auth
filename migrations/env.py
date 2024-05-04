@@ -14,7 +14,7 @@ from src.core.db.entities import Entity
 
 class Settings(PostgresSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/var/auth/.env.postgres",
+        env_file="./infra/env/auth/.env.postgres",
         env_file_encoding="utf-8",
         extra="ignore",
     )

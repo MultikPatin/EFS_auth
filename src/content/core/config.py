@@ -13,15 +13,15 @@ logging_config.dictConfig(LOGGING)
 
 class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/var/content/.env.api",
+        env_file="./infra/env/content/.env.api",
         env_file_encoding="utf-8",
     )
     elastic: ElasticSettings = ElasticSettings(
-        _env_file="./infra/var/content/.env.elastic",
+        _env_file="./infra/env/content/.env.elastic",
         _env_file_encoding="utf-8",
     )
     redis: RedisSettings = RedisSettings(
-        _env_file="./infra/var/content/.env.redis",
+        _env_file="./infra/env/content/.env.redis",
         _env_file_encoding="utf-8",
     )
 

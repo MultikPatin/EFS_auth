@@ -30,7 +30,7 @@ services:
       file: infra/helpers/docker.yml
       service: postgres_base
     env_file:
-      - infra/var/content/.env.postgres
+      - infra/env/content/.env.postgres
     volumes:
       - postgres_content_data:/var/lib/postgresql/data/
       - ./postgres_content/:/docker-entrypoint-initdb.d
@@ -45,7 +45,7 @@ services:
       file: infra/helpers/docker.yml
       service: postgres_base
     env_file:
-      - infra/var/auth/.env.postgres
+      - infra/env/auth/.env.postgres
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data/
     healthcheck:
@@ -61,7 +61,7 @@ services:
       - LOCAL=False
       - DEBUG=True
     env_file:
-      - infra/var/auth/.env.postgres
+      - infra/env/auth/.env.postgres
     depends_on:
       postgres_auth:
         condition: service_healthy
@@ -74,7 +74,7 @@ services:
       file: infra/helpers/docker.yml
       service: redis_base
     env_file:
-      - infra/var/content/.env.redis
+      - infra/env/content/.env.redis
     volumes:
       - redis_content_data:/var/lib/redis/data
     ports:
@@ -86,7 +86,7 @@ services:
       file: infra/helpers/docker.yml
       service: redis_base
     env_file:
-      - infra/var/auth/.env.redis
+      - infra/env/auth/.env.redis
     volumes:
       - redis_auth_data:/var/lib/redis/data
     ports:
@@ -100,9 +100,9 @@ services:
         - ETL_NAME=movies
         - LOCAL=False
       env_file:
-        - ./infra/var/content/.env.etl
-        - ./infra/var/content/.env.postgres
-        - ./infra/var/content/.env.elastic
+        - infra/env/content/.env.etl
+        - infra/env/content/.env.postgres
+        - infra/env/content/.env.elastic
       depends_on:
         postgres_content:
           condition: service_healthy
@@ -118,9 +118,9 @@ services:
       - ETL_NAME=genres
       - LOCAL=False
     env_file:
-      - ./infra/var/content/.env.etl
-      - ./infra/var/content/.env.postgres
-      - ./infra/var/content/.env.elastic
+      - infra/env/content/.env.etl
+      - infra/env/content/.env.postgres
+      - infra/env/content/.env.elastic
     depends_on:
       postgres_content:
         condition: service_healthy
@@ -136,9 +136,9 @@ services:
       - ETL_NAME=persons
       - LOCAL=False
     env_file:
-      - ./infra/var/content/.env.etl
-      - ./infra/var/content/.env.postgres
-      - ./infra/var/content/.env.elastic
+      - infra/env/content/.env.etl
+      - infra/env/content/.env.postgres
+      - infra/env/content/.env.elastic
     depends_on:
       postgres_content:
         condition: service_healthy
@@ -153,9 +153,9 @@ services:
     container_name: ${CONTENT_API_HOST}
     restart: always
     env_file:
-      - infra/var/content/.env.api
-      - infra/var/content/.env.elastic
-      - infra/var/content/.env.redis
+      - infra/env/content/.env.api
+      - infra/env/content/.env.elastic
+      - infra/env/content/.env.redis
     environment:
       - LOCAL=False
       - DEBUG=True
@@ -177,9 +177,9 @@ services:
     container_name: ${AUTH_API_HOST}
     restart: always
     env_file:
-      - infra/var/auth/.env.api
-      - infra/var/auth/.env.postgres
-      - infra/var/auth/.env.redis
+      - infra/env/auth/.env.api
+      - infra/env/auth/.env.postgres
+      - infra/env/auth/.env.redis
     environment:
       - LOCAL=False
       - DEBUG=True
@@ -198,8 +198,8 @@ services:
       dockerfile: src/admin/Dockerfile
     container_name: ${ADMIN_API_HOST}
     env_file:
-      - infra/var/admin/.env.api
-      - infra/var/content/.env.postgres
+      - infra/env/admin/.env.api
+      - infra/env/content/.env.postgres
     environment:
       - LOCAL=False
     volumes:
