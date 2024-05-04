@@ -7,6 +7,7 @@ from pydantic_settings import SettingsConfigDict
 
 from src.auth.core.logger import LOGGING
 from src.core.configs.base import ProjectSettings
+from src.core.configs.loader import LoaderSettings, get_JSON_config
 from src.core.configs.postgres import PostgresAuthSettings
 from src.core.configs.redis import RedisAuthSettings
 
@@ -50,6 +51,15 @@ class Settings(ProjectSettings):
     authjwt_cookie_secure: bool = (
         Field(..., alias="AUTH_AUTHJWT_COOKIE_SECURE") == "True"
     )
+
+    loader: LoaderSettings = LoaderSettings()
+
+    google_client_id: str = Field(..., alias="GOOGLE_CLIENT_ID")
+    google_client_secret: SecretStr = Field(..., alias="GOOGLE_CLIENT_SECRET")
+    google_config_url: str = Field(..., alias="GOOGLE_CONFIG_URL")
+    google_config: dict = get_JSON_config(loader.google_url)
+    google_state: SecretStr = Field(..., alias="GOOGLE_STATE")
+
 
 
 settings = Settings()
