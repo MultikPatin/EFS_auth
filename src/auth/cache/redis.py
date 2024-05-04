@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from uuid import UUID
 
 from src.auth.core.config import settings
@@ -27,7 +28,7 @@ class RedisCache(AbstractAuthCache, RedisBase):
         """
         max_sessions = settings.user_max_sessions
         keys = []
-        async for key in self.__redis.scan_iter(f"{str(pattern)}:*", 10000):
+        async for key in self._redis.scan_iter(f"{str(pattern)}:*", 10000):
             keys.append(key)
             if len(keys) == max_sessions:
                 break
@@ -69,9 +70,9 @@ class RedisCache(AbstractAuthCache, RedisBase):
         token_expire_in_sec = token_expire_in_days * 24 * 60 * 60
 
         try:
-            await self.__redis.set(key, value, token_expire_in_sec)
+            await self._redis.set(key, value, token_expire_in_sec)
         except Exception as set_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error setting value with key `%s::%s`: %s.",
                 key,
                 value,
@@ -96,11 +97,11 @@ class RedisCache(AbstractAuthCache, RedisBase):
         keys = await self._collect_keys(key_pattern)
 
         try:
-            values = await self.__redis.mget(keys)
+            values = await self._redis.mget(keys)
             if not values:
                 return None
         except Exception as get_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error getting value with key `%s`: %s.", key_pattern, get_error
             )
             raise
@@ -126,13 +127,16 @@ class RedisCache(AbstractAuthCache, RedisBase):
             key = await self._build_key(uuid, token)
             keys = [key]
         try:
-            await self.__redis.delete(*keys)
+            await self._redis.delete(*keys)
         except Exception as get_error:
-            self.__logger.error(
+            self._logger.error(
                 "Error deletion value with key `%s`: %s.", key, get_error
             )
             raise
         return
+
+    def build_key(self, key_prefix: str, *args: Sequence) -> str:
+        pass
 
 
 redis: RedisCache | None = None

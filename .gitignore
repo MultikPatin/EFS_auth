@@ -123,6 +123,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
 .venv
 env/
 venv/
@@ -172,3 +173,4 @@ logs/
 
 infra/db/
 !/src/etl/state.json
+!/infra/env/

@@ -1,7 +1,7 @@
 import pytest
 from http import HTTPStatus
 
-from tests.auth.functional import (
+from tests.auth.functional.testdata.users_data import (
     users_creation_data,
     del_query as del_query_user,
     del_history_query,
@@ -10,11 +10,14 @@ from tests.auth.functional import (
     user_super_data,
     role_super_data,
     user_change_pass_data,
-    user_invalid_pass_data
+    user_invalid_pass_data,
 )
-from tests.auth.functional import del_query as del_query_role, del_query_role_perm
+from tests.auth.functional.testdata.roles_data import (
+    del_query as del_query_role,
+    del_query_role_perm,
+)
 from tests.auth.functional.testdata.tokens_data import UserClaims
-from tests.auth.functional import (
+from tests.auth.functional.testdata.base_data import (
     id_good_1,
     id_super,
     id_bad,
@@ -31,10 +34,13 @@ from tests.auth.functional import (
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_super,
-                "new_password": "DJVkw6U&}b;q#V-D!7^;zl?52im2*B"
+                "new_password": "DJVkw6U&}b;q#V-D!7^;zl?52im2*B",
             },
         ),
-        ({"user_id": id_super, "data": user_invalid_pass_data}, {"status": HTTPStatus.UNAUTHORIZED}),
+        (
+            {"user_id": id_super, "data": user_invalid_pass_data},
+            {"status": HTTPStatus.UNAUTHORIZED},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -62,20 +68,22 @@ async def test_change_password(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = f"/users/{query_data.get('user_id')}/set_password/"
-    response = await make_post_request(path, body=query_data.get("data"),cookies=cookies)
+    response = await make_post_request(
+        path, body=query_data.get("data"), cookies=cookies
+    )
     body, status, _ = response
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
         path = f"/tokens/login/"
         body_ = {
             "email": user_super_data.get("email"),
-            "password": expected_answer.get("new_password")
+            "password": expected_answer.get("new_password"),
         }
-        response = await make_post_request(path, body=body_,cookies=cookies)
+        response = await make_post_request(path, body=body_, cookies=cookies)
         body, status, _ = response
         assert status == HTTPStatus.OK
 
@@ -126,16 +134,16 @@ async def test_get_user_history(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     if expected_answer.get("status") == HTTPStatus.OK:
         path = f"/tokens/login/"
         body_ = {
             "email": user_super_data.get("email"),
-            "password": expected_answer.get("password")
+            "password": expected_answer.get("password"),
         }
-        response = await make_post_request(path, body=body_,cookies=cookies)
+        response = await make_post_request(path, body=body_, cookies=cookies)
         body, status, _ = response
 
     path = f"/users/{id_super}/history/"
@@ -155,7 +163,7 @@ async def test_get_user_history(
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
                 "keys": ["uuid", "first_name", "last_name", "email", "role"],
-                "role_uuid": id_good_1
+                "role_uuid": id_good_1,
             },
         ),
         ({"user_id": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
@@ -186,7 +194,7 @@ async def test_get_user_role(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -230,13 +238,13 @@ async def test_get_user_role(
             {"user_id": id_good_1, "role_uuid": id_invalid},
             {
                 "status": HTTPStatus.UNPROCESSABLE_ENTITY,
-            }
+            },
         ),
         (
             {"user_id": id_good_1, "role_uuid": id_bad},
             {
                 "status": HTTPStatus.NOT_FOUND,
-            }
+            },
         ),
     ],
 )
@@ -264,7 +272,7 @@ async def test_change_user_role(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -280,7 +288,9 @@ async def test_change_user_role(
         await postgres_write_data(template, table)
 
     path = f"/users/{query_data.get('user_id')}/roles/{query_data.get('role_uuid')}/"
-    response = await make_put_request(path, query_data=query_data.get("role_uuid"), cookies=cookies)
+    response = await make_put_request(
+        path, query_data=query_data.get("role_uuid"), cookies=cookies
+    )
     body, status, _ = response
 
     assert status == expected_answer.get("status")

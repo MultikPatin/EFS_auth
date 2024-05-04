@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash
-from tests.auth.functional import (
+from tests.auth.functional.testdata.base_data import (
     id_super,
 )
 
@@ -22,12 +22,12 @@ role_super_data = {
 
 user_change_pass_data = {
     "new_password": generate_password_hash("DJVkw6U&}b;q#V-D!7^;zl?52im2*B"),
-    "current_password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih"
+    "current_password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
 }
 
 user_invalid_pass_data = {
     "new_password": generate_password_hash("DJVkw6U&}b;q#V-D!7^;zl?52im2*B"),
-    "current_password": "sdafsadfd"
+    "current_password": "sdafsadfd",
 }
 
 users_creation_data = {
@@ -41,28 +41,28 @@ user_request_create = {
     "first_name": "Вася",
     "last_name": "Пупкин",
     "email": "exemple1@mail.ru",
-    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih"
+    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
 }
 
 invalid_too_long_name = {
     "first_name": "f" * 65,
     "last_name": "Пупкин",
     "email": "exemple3@mail.ru",
-    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih"
+    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
 }
 
 invalid_too_short_name = {
     "first_name": "f" * 0,
     "last_name": "Пупкин",
     "email": "exemple4@mail.ru",
-    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih"
+    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
 }
 
 invalid_email = {
     "first_name": "Вася",
     "last_name": "Пупкин",
     "email": "exemplemail.ru",
-    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih"
+    "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
 }
 
 role_template = {
@@ -79,7 +79,7 @@ history_data = {
     "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "user_uuid": "id_super",
     "ip_address": "127.0.0.1:8000",
-    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
 }
 
 del_query = f"""

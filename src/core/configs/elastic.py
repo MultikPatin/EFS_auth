@@ -1,26 +1,18 @@
-import os
+from pydantic import Field
 
-from dotenv import load_dotenv
-from pydantic.fields import Field
-from pydantic_settings import BaseSettings
-
-load_dotenv(".env")
-local = os.getenv("LOCAL", "True")
+from src.core.configs.base import ServiceSettings
 
 
-class ElasticSettings(BaseSettings):
+class ElasticSettings(ServiceSettings):
     """
     This class is used to store the Elastic connection settings.
     """
 
-    host: str = Field(default=..., alias="ELASTIC_HOST")
-    port: int = Field(default=9200, alias="ELASTIC_PORT")
-
-    def __correct_host(self) -> str:
-        if local == "True":
-            return "localhost"
-        return self.host
+    host: str = Field(..., alias="ELASTIC_HOST")
+    port: int = Field(..., alias="ELASTIC_PORT")
+    host_local: str = Field("localhost", alias="ELASTIC_HOST_LOCAL")
+    port_local: int = Field(9200, alias="ELASTIC_PORT_LOCAL")
 
     @property
     def get_host(self) -> str:
-        return f"http://{self.__correct_host()}:{self.port}"
+        return f"http://{self.correct_host()}:{self.correct_port()}"

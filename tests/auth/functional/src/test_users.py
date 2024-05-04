@@ -2,7 +2,7 @@ import pytest
 from http import HTTPStatus
 
 
-from tests.auth.functional import (
+from tests.auth.functional.testdata.users_data import (
     users_creation_data,
     user_request_create,
     invalid_too_long_name,
@@ -15,14 +15,18 @@ from tests.auth.functional import (
     role_super_data,
 )
 from tests.auth.functional.testdata.tokens_data import UserClaims
-from tests.auth.functional import del_query as del_query_role, del_query_role_perm
-from tests.auth.functional import (
+from tests.auth.functional.testdata.roles_data import (
+    del_query as del_query_role,
+    del_query_role_perm,
+)
+from tests.auth.functional.testdata.base_data import (
     ids,
     id_super,
     id_good_1,
     id_bad,
-    id_invalid
+    id_invalid,
 )
+
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
@@ -58,13 +62,15 @@ async def test_list_users(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
-    template = [{"uuid": id} for id in ids[:expected_answer.get("length")]]
+    template = [{"uuid": id} for id in ids[: expected_answer.get("length")]]
     for index, id in enumerate(template):
         id.update(users_creation_data)
-        id.update({"email": f"example{str(index)}@mail.ru", "role_uuid": id_good_1})
+        id.update(
+            {"email": f"example{str(index)}@mail.ru", "role_uuid": id_good_1}
+        )
     if template:
         table = "roles"
         template_for_role = [role_template]
@@ -78,7 +84,7 @@ async def test_list_users(
     body, status, _ = response
     assert status == expected_answer.get("status")
     if status == HTTPStatus.OK:
-        assert len(body)-1 == expected_answer.get("length")
+        assert len(body) - 1 == expected_answer.get("length")
 
 
 @pytest.mark.parametrize(
@@ -90,7 +96,7 @@ async def test_list_users(
                 "status": HTTPStatus.OK,
                 "body": {
                     "code": HTTPStatus.OK,
-                    "details": "User deleted successfully"
+                    "details": "User deleted successfully",
                 },
             },
         ),
@@ -123,7 +129,7 @@ async def test_delete_user(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -136,7 +142,6 @@ async def test_delete_user(
         await postgres_write_data(template_for_role, table)
         table = "users"
         await postgres_write_data(template, table)
-
 
     path = f"/users/{query_data.get('user_id')}"
     response = await make_delete_request(path, cookies=cookies)
@@ -157,7 +162,7 @@ async def test_delete_user(
                 "first_name": "Вася",
                 "last_name": "Пупкин",
                 "email": "exemple1@mail.ru",
-                "is_superuser": False
+                "is_superuser": False,
             },
         ),
         (
@@ -199,7 +204,7 @@ async def test_create_user(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = "/users/"
@@ -214,8 +219,6 @@ async def test_create_user(
         assert body.get("is_superuser") == expected_answer.get("is_superuser")
 
 
-
-
 @pytest.mark.parametrize(
     "query_data, expected_answer",
     [
@@ -224,7 +227,16 @@ async def test_create_user(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "first_name", "last_name", "email", "is_superuser", "role_uuid"],
+                "keys": [
+                    "created_at",
+                    "updated_at",
+                    "uuid",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "is_superuser",
+                    "role_uuid",
+                ],
             },
         ),
         ({"user_id": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
@@ -256,7 +268,7 @@ async def test_get_user(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -292,7 +304,16 @@ async def test_get_user(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "first_name", "last_name", "email", "is_superuser", "role_uuid"],
+                "keys": [
+                    "created_at",
+                    "updated_at",
+                    "uuid",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "is_superuser",
+                    "role_uuid",
+                ],
                 "pathced_data": {
                     "first_name": "Эдик",
                     "last_name": "Эриксон",
@@ -306,7 +327,7 @@ async def test_get_user(
                 "pathced_data": {
                     "first_name": "Эдик",
                 },
-            }
+            },
         ),
         (
             {"user_id": id_good_1},
@@ -315,7 +336,7 @@ async def test_get_user(
                 "pathced_data": {
                     "last_name": "Эриксон",
                 },
-            }
+            },
         ),
     ],
 )
@@ -344,7 +365,7 @@ async def test_patch_user(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -361,7 +382,9 @@ async def test_patch_user(
         await postgres_write_data(template, table)
 
     path = f"/users/{query_data.get('user_id')}"
-    response = await make_patch_request(path, body=expected_answer.get("pathced_data"), cookies=cookies)
+    response = await make_patch_request(
+        path, body=expected_answer.get("pathced_data"), cookies=cookies
+    )
     body, status, _ = response
 
     assert status == expected_answer.get("status")
@@ -383,7 +406,7 @@ async def test_patch_user(
                 "status": HTTPStatus.OK,
                 "uuid": id_super,
                 "password": "[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
-            }
+            },
         ),
     ],
 )
@@ -413,16 +436,16 @@ async def test_get_me(
 
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     if expected_answer.get("statis") == HTTPStatus.OK:
         path = f"/tokens/login/"
         body_ = {
             "email": user_super_data.get("email"),
-            "password": expected_answer.get("password")
+            "password": expected_answer.get("password"),
         }
-        response = await make_post_request(path, body=body_,cookies=cookies)
+        response = await make_post_request(path, body=body_, cookies=cookies)
         body, status, _ = response
 
     path = f"/users/me/"

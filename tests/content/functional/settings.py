@@ -3,7 +3,7 @@ from typing import Any
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv.main import find_dotenv, load_dotenv
-from tests.functional.testdata.es_mapping import (
+from tests.content.functional.testdata.es_mapping import (
     ELASTIC_SETTINGS,
     FILMS_ELASTIC_MAPPING,
     GENRES_ELASTIC_MAPPING,

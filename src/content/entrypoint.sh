@@ -1,4 +1,3 @@
-#!/bin/bash
 export PYTHONPATH=$SRC_PATH
 rm poetry.lock
 rm pyproject.toml

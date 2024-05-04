@@ -18,7 +18,7 @@ from src.core.utils.logger import create_logger
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     redis.redis = redis.RedisCache(
-        Redis(host=settings.redis.host, port=settings.redis.port),
+        Redis(**settings.redis.connection_dict),
         logger=create_logger("API RedisCache"),
     )
     elastic.elastic = elastic.ElasticDB(

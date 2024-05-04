@@ -1,14 +1,14 @@
 import pytest
 from http import HTTPStatus
 
-from tests.functional.testdata.base_data import (
+from tests.content.functional.testdata.base_data import (
     id_good_1,
     id_bad,
     id_invalid,
     ids,
 )
 
-from tests.functional.testdata.genres_data import es_genres_data
+from tests.content.functional.testdata.genres_data import es_genres_data
 
 
 @pytest.mark.parametrize(

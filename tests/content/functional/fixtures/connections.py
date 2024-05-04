@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 
-from tests.functional.settings import settings
+from tests.content.functional.settings import settings
 
 from redis.asyncio import Redis
 import aiohttp

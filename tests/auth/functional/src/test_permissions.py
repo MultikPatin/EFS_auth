@@ -1,23 +1,31 @@
 import pytest
 from http import HTTPStatus
 
-from tests.auth.functional import (
+from tests.auth.functional.testdata.permissions_data import (
     permissions_creation_data,
     permission_request_create,
     invalid_too_long_name,
     invalid_too_short_name,
-    del_query as del_query_permission
+    del_query as del_query_permission,
 )
-from tests.auth.functional import del_query as del_query_role, del_query_role_perm
-from tests.auth.functional import del_query as del_query_user, user_super_data, role_super_data
+from tests.auth.functional.testdata.roles_data import (
+    del_query as del_query_role,
+    del_query_role_perm,
+)
+from tests.auth.functional.testdata.users_data import (
+    del_query as del_query_user,
+    user_super_data,
+    role_super_data,
+)
 from tests.auth.functional.testdata.tokens_data import UserClaims
-from tests.auth.functional import (
+from tests.auth.functional.testdata.base_data import (
     ids,
     id_super,
     id_good_1,
     id_bad,
-    id_invalid
+    id_invalid,
 )
+
 
 @pytest.mark.parametrize(
     "query_data, expected_answer",
@@ -52,10 +60,10 @@ async def test_list_permissions(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
-    template = [{"uuid": id} for id in ids[:expected_answer.get("length")]]
+    template = [{"uuid": id} for id in ids[: expected_answer.get("length")]]
     for index, id in enumerate(template):
         id.update(permissions_creation_data)
         id.update({"name": f"_{str(index)}"})
@@ -80,7 +88,7 @@ async def test_list_permissions(
             {
                 "status": HTTPStatus.OK,
                 "description": "Не тот кто каждый поймет",
-                "name": "Артхаус"
+                "name": "Артхаус",
             },
         ),
         (
@@ -117,7 +125,7 @@ async def test_create_permission(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     path = "/permissions/"
@@ -138,11 +146,20 @@ async def test_create_permission(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "description", "name"],
+                "keys": [
+                    "created_at",
+                    "updated_at",
+                    "uuid",
+                    "description",
+                    "name",
+                ],
             },
         ),
         ({"permission_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"permission_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"permission_uuid": id_invalid},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -169,7 +186,7 @@ async def test_get_permission(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -201,10 +218,14 @@ async def test_get_permission(
             {
                 "status": HTTPStatus.OK,
                 "uuid": id_good_1,
-                "keys": ["created_at", "updated_at", "uuid", "description", "name"],
-                "pathced_data": {
-                    "description": "для самых тех"
-                },
+                "keys": [
+                    "created_at",
+                    "updated_at",
+                    "uuid",
+                    "description",
+                    "name",
+                ],
+                "pathced_data": {"description": "для самых тех"},
             },
         ),
         (
@@ -214,7 +235,7 @@ async def test_get_permission(
                 "pathced_data": {
                     "description": "",
                 },
-            }
+            },
         ),
     ],
 )
@@ -242,7 +263,7 @@ async def test_patch_permission(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]
@@ -253,7 +274,9 @@ async def test_patch_permission(
         await postgres_write_data(template, table)
 
     path = f"/permissions/{query_data.get('permission_uuid')}"
-    response = await make_patch_request(path, body=expected_answer.get("pathced_data"), cookies=cookies)
+    response = await make_patch_request(
+        path, body=expected_answer.get("pathced_data"), cookies=cookies
+    )
     body, status, _ = response
 
     assert status == expected_answer.get("status")
@@ -275,12 +298,15 @@ async def test_patch_permission(
                 "status": HTTPStatus.OK,
                 "body": {
                     "code": HTTPStatus.OK,
-                    "details": "Permission deleted successfully"
+                    "details": "Permission deleted successfully",
                 },
             },
         ),
         ({"permission_uuid": id_bad}, {"status": HTTPStatus.NOT_FOUND}),
-        ({"permission_uuid": id_invalid}, {"status": HTTPStatus.UNPROCESSABLE_ENTITY}),
+        (
+            {"permission_uuid": id_invalid},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY},
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -307,7 +333,7 @@ async def test_delete_permission(
         await set_token(query_data, tokens.refresh_token_cookie)
     cookies = {
         "access_token_cookie": tokens.access_token_cookie,
-        "refresh_token_cookie": tokens.refresh_token_cookie
+        "refresh_token_cookie": tokens.refresh_token_cookie,
     }
 
     template = [{"uuid": id_good_1}]

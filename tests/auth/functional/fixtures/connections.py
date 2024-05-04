@@ -3,7 +3,7 @@ import asyncio
 import pytest
 import pytest_asyncio
 
-from tests.auth.functional import settings
+from tests.auth.functional.settings import settings
 import psycopg2
 
 from redis.asyncio import Redis

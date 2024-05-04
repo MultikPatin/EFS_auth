@@ -4,7 +4,7 @@ from json import JSONDecodeError
 import pytest
 import aiohttp
 
-from tests.auth.functional import settings
+from tests.auth.functional.settings import settings
 
 pytest_plugins = (
     "tests.functional.fixtures.connections",
@@ -35,7 +35,12 @@ def make_get_request(session: aiohttp.ClientSession):
 
 @pytest.fixture
 def make_post_request(session: aiohttp.ClientSession):
-    async def inner(path: str, query_data: dict = None, body: dict = None, cookies: dict = None):
+    async def inner(
+        path: str,
+        query_data: dict = None,
+        body: dict = None,
+        cookies: dict = None,
+    ):
         url = "http://" + settings.get_api_host + "/auth/v1" + path
         if cookies:
             session.cookie_jar.update_cookies(cookies)
@@ -55,7 +60,12 @@ def make_post_request(session: aiohttp.ClientSession):
 
 @pytest.fixture
 def make_patch_request(session: aiohttp.ClientSession):
-    async def inner(path: str, query_data: dict = None, body: dict = None, cookies: dict = None):
+    async def inner(
+        path: str,
+        query_data: dict = None,
+        body: dict = None,
+        cookies: dict = None,
+    ):
         url = "http://" + settings.get_api_host + "/auth/v1" + path
         if cookies:
             session.cookie_jar.update_cookies(cookies)
@@ -75,7 +85,12 @@ def make_patch_request(session: aiohttp.ClientSession):
 
 @pytest.fixture
 def make_put_request(session: aiohttp.ClientSession):
-    async def inner(path: str, query_data: dict = None, body: dict = None, cookies: dict = None):
+    async def inner(
+        path: str,
+        query_data: dict = None,
+        body: dict = None,
+        cookies: dict = None,
+    ):
         url = "http://" + settings.get_api_host + "/auth/v1" + path
         if cookies:
             session.cookie_jar.update_cookies(cookies)
@@ -95,7 +110,12 @@ def make_put_request(session: aiohttp.ClientSession):
 
 @pytest.fixture
 def make_delete_request(session: aiohttp.ClientSession):
-    async def inner(path: str, query_data: dict = None, body: dict = None, cookies: dict = None):
+    async def inner(
+        path: str,
+        query_data: dict = None,
+        body: dict = None,
+        cookies: dict = None,
+    ):
         url = "http://" + settings.get_api_host + "/auth/v1" + path
         if cookies:
             session.cookie_jar.update_cookies(cookies)
