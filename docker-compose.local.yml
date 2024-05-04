@@ -20,34 +20,38 @@ services:
       retries: 50
       start_period: 10s
     ports:
-      - "${CONTENT_ELASTIC_PORT}:9200"
+      - "${CONTENT_ELASTIC_PORT_OUT}:9200"
     networks:
       - services
 
   postgres_content:
     container_name: ${CONTENT_POSTGRES_HOST}
     extends:
-      file: infra/helpers/postgres.yml
+      file: infra/helpers/docker.yml
       service: postgres_base
     env_file:
       - infra/var/content/.env.postgres
     volumes:
       - postgres_content_data:/var/lib/postgresql/data/
       - ./postgres_content/:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h ${CONTENT_POSTGRES_HOST}" ]
     ports:
-      - "${CONTENT_POSTGRES_PORT}:5432"
+      - "${CONTENT_POSTGRES_PORT_OUT}:5432"
 
   postgres_auth:
     container_name: ${AUTH_POSTGRES_HOST}
     extends:
-      file: infra/helpers/postgres.yml
+      file: infra/helpers/docker.yml
       service: postgres_base
     env_file:
       - infra/var/auth/.env.postgres
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h ${AUTH_POSTGRES_HOST}" ]
     ports:
-      - "${AUTH_POSTGRES_PORT}:5432"
+      - "${AUTH_POSTGRES_PORT_OUT}:5432"
 
   migrations_auth:
     build:
@@ -55,6 +59,7 @@ services:
     container_name: migrations_auth
     environment:
       - LOCAL=False
+      - DEBUG=True
     env_file:
       - infra/var/auth/.env.postgres
     depends_on:
@@ -66,26 +71,26 @@ services:
   redis_content:
     container_name: ${CONTENT_REDIS_HOST}
     extends:
-      file: infra/helpers/redis.yml
+      file: infra/helpers/docker.yml
       service: redis_base
     env_file:
       - infra/var/content/.env.redis
     volumes:
       - redis_content_data:/var/lib/redis/data
     ports:
-      - "${CONTENT_REDIS_PORT}:6379"
+      - "${CONTENT_REDIS_PORT_OUT}:6379"
 
   redis_auth:
     container_name: ${AUTH_REDIS_HOST}
     extends:
-      file: infra/helpers/redis.yml
+      file: infra/helpers/docker.yml
       service: redis_base
     env_file:
       - infra/var/auth/.env.redis
     volumes:
       - redis_auth_data:/var/lib/redis/data
     ports:
-      - "${AUTH_REDIS_PORT}:6379"
+      - "${AUTH_REDIS_PORT_OUT}:6379"
 
   etl_content_movies:
       build:
@@ -153,6 +158,7 @@ services:
       - infra/var/content/.env.redis
     environment:
       - LOCAL=False
+      - DEBUG=True
     depends_on:
       postgres_content:
         condition: service_healthy
@@ -161,7 +167,7 @@ services:
       redis_content:
         condition: service_healthy
     ports:
-      - "${CONTENT_API_PORT}:8000"
+      - "${CONTENT_API_PORT_OUT}:8000"
     networks:
       - services
 
@@ -176,13 +182,14 @@ services:
       - infra/var/auth/.env.redis
     environment:
       - LOCAL=False
+      - DEBUG=True
     depends_on:
       postgres_auth:
         condition: service_healthy
       redis_auth:
         condition: service_healthy
     ports:
-      - "${AUTH_API_PORT}:8000"
+      - "${AUTH_API_PORT_OUT}:8000"
     networks:
       - services
 
@@ -201,7 +208,7 @@ services:
       postgres_content:
         condition: service_healthy
     ports:
-      - "${ADMIN_API_PORT}:8000"
+      - "${ADMIN_API_PORT_OUT}:8000"
     networks:
       - services
 
@@ -234,7 +241,6 @@ services:
       - "80:80"
     networks:
       - services
-
 
 volumes:
   elastic_content_data:

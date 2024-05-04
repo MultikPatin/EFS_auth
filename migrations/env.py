@@ -2,6 +2,7 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -17,9 +18,13 @@ class Settings(PostgresSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+    debug: bool = Field("True", alias="DEBUG")
 
 
 settings = Settings()
+
+if settings.debug:
+    print(settings.model_dump())
 
 config = context.config
 config.set_main_option(

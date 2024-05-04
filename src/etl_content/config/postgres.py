@@ -1,3 +1,4 @@
+from psycopg2.extras import DictCursor
 from pydantic import SecretStr
 from pydantic.fields import Field
 from sqlalchemy import URL
@@ -30,3 +31,16 @@ class PostgresSettings(ServiceSettings):
             port=self._correct_port(),
             database=self.database,
         )
+
+
+class PostgresSettingsWithPsycoConnect(PostgresSettings):
+    @property
+    def psycopg2_connect(self) -> dict:
+        return {
+            "dbname": self.database,
+            "user": self.user,
+            "password": self.password.get_secret_value(),
+            "host": self._correct_host(),
+            "port": self._correct_port(),
+            "cursor_factory": DictCursor,
+        }

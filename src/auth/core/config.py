@@ -1,26 +1,21 @@
-import os
 from logging import config as logging_config
 
 from async_fastapi_jwt_auth import AuthJWT
-
-# from dotenv.main import find_dotenv, load_dotenv
 from pydantic import Field, SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import SettingsConfigDict
 
 from src.auth.core.logger import LOGGING
+from src.core.configs.base import ProjectSettings
 from src.core.configs.postgres import PostgresSettings
 from src.core.configs.redis import RedisSettings
-
-# load_dotenv(find_dotenv(".env.auth"))
 
 logging_config.dictConfig(LOGGING)
 
 
-class Settings(BaseSettings):
+class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
         env_file="./infra/var/auth/.env.api",
         env_file_encoding="utf-8",
-        extra="ignore",
     )
     postgres: PostgresSettings = PostgresSettings(
         _env_file="./infra/var/auth/.env.postgres",
@@ -31,8 +26,6 @@ class Settings(BaseSettings):
         _env_file_encoding="utf-8",
     )
 
-    name: str = Field(..., alias="API_PROJECT_NAME")
-    description: str = Field(..., alias="API_PROJECT_DESCRIPTION")
     docs_url: str = Field(..., alias="API_DOCS_URL")
     openapi_url: str = Field(..., alias="API_OPENAPI_URL")
     host: str = Field(..., alias="API_HOST")
@@ -56,8 +49,6 @@ class Settings(BaseSettings):
         Field(..., alias="AUTHJWT_COOKIE_SECURE") == "True"
     )
 
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 settings = Settings()
 
@@ -65,3 +56,7 @@ settings = Settings()
 @AuthJWT.load_config
 def get_config():
     return Settings()
+
+
+if settings.debug:
+    print(settings.model_dump())
