@@ -197,6 +197,7 @@ services:
     build:
       dockerfile: src/admin/Dockerfile
     container_name: ${ADMIN_API_HOST}
+    restart: always
     env_file:
       - infra/env/admin/.env.api
       - infra/env/content/.env.postgres

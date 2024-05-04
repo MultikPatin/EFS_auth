@@ -15,4 +15,4 @@ class ElasticSettings(ServiceSettings):
 
     @property
     def get_host(self) -> str:
-        return f"http://{self._correct_host()}:{self._correct_port()}"
+        return f"http://{self.correct_host()}:{self.correct_port()}"

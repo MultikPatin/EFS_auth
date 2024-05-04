@@ -26,7 +26,7 @@ class PostgresSettings(ServiceSettings):
             drivername="postgresql+asyncpg",
             username=self.user,
             password=self.password.get_secret_value(),
-            host=self._correct_host(),
-            port=self._correct_port(),
+            host=self.correct_host(),
+            port=self.correct_port(),
             database=self.database,
         )

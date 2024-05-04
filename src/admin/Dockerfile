@@ -21,8 +21,7 @@ RUN python -m pip install --no-cache-dir poetry==1.7.1 \
     && rm -rf $(poetry config cache-dir)/{cache,artifacts}
 
 COPY ./${APP_DIR} ./${APP_DIR}
-COPY ./src/core/configs/__init__.py ./src/core/configs/__init__.py
-COPY ./src/core/configs/postgres.py ./src/core/configs/postgres.py
+COPY ./src/core/configs ./src/core/configs
 
 RUN chmod +x ${APP_DIR}/entrypoint.sh
 

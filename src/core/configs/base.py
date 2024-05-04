@@ -6,18 +6,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class ServiceSettings(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
-    host: str
-    port: int
+    host: str = ""
+    port: int = 0
     host_local: str = ""
     port_local: int = 0
     local: bool = Field("True", alias="LOCAL")
 
-    def _correct_host(self) -> str:
+    def correct_host(self) -> str:
         if self.local:
             return self.host_local
         return self.host
 
-    def _correct_port(self) -> int:
+    def correct_port(self) -> int:
         if self.local:
             return self.port_local
         return self.port

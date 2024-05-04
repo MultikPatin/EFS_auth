@@ -10,7 +10,7 @@ class PostgresSettingsWithPsycoConnect(PostgresSettings):
             "dbname": self.database,
             "user": self.user,
             "password": self.password.get_secret_value(),
-            "host": self._correct_host(),
-            "port": self._correct_port(),
+            "host": self.correct_host(),
+            "port": self.correct_port(),
             "cursor_factory": DictCursor,
         }

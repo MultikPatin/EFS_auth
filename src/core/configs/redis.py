@@ -16,6 +16,6 @@ class RedisSettings(ServiceSettings):
     @property
     def connection_dict(self) -> dict:
         return {
-            "host": self._correct_host(),
-            "port": self._correct_port(),
+            "host": self.correct_host(),
+            "port": self.correct_port(),
         }
