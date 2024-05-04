@@ -1,28 +1,26 @@
-from pydantic import SecretStr
-from pydantic.fields import Field
-from pydantic_settings import BaseSettings
+from pydantic import Field, SecretStr
 from pydantic_settings.main import SettingsConfigDict
 
+from src.core.configs.base import ProjectSettings
 from src.core.configs.postgres import PostgresSettings
 
 
-class Settings(BaseSettings):
+class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file="./infra/env/admin/.env.api",
+        env_file_encoding="utf-8",
     )
-
-    postgres: PostgresSettings = PostgresSettings(
-        _env_file="./infra/var/content/.env.postgres",
+    postgres_content: PostgresSettings = PostgresSettings(
+        _env_file="./infra/env/content/.env.postgres",
+        _env_file_encoding="utf-8",
+    )
+    postgres_auth: PostgresSettings = PostgresSettings(
+        _env_file="./infra/env/auth/.env.postgres",
         _env_file_encoding="utf-8",
     )
     allowed_hosts: str = Field(default=..., alias="ALLOWED_HOSTS")
     debug: str = Field(default=..., alias="DEBUG")
     secret_key: SecretStr = Field(default=..., alias="SECRET_KEY")
-    superuser_name: str = Field(default=..., alias="DJANGO_SUPERUSER_USERNAME")
-    superuser_password: SecretStr = Field(
-        default=..., alias="DJANGO_SUPERUSER_PASSWORD"
-    )
-    superuser_mail: str = Field(default=..., alias="DJANGO_SUPERUSER_EMAIL")
 
     @property
     def get_debug(self) -> bool:
@@ -34,3 +32,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+if settings.debug:
+    print(settings.model_dump())
