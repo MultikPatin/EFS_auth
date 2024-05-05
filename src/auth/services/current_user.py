@@ -28,13 +28,19 @@ class CurrentUserService:
                 detail="No token",
             )
 
-        user_uuid = validate_token(token).get("user_uuid")
-        if not user_uuid:
+        validation_result = await validate_token(token)
+        if not validation_result:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND, detail="user not found"
             )
+        token_type, raw_token = validation_result
+        if token_type == "internal":
+            user_uuid = raw_token.get("user_uuid")
+            obj = await self._user_repository.get(user_uuid)
+        elif token_type == "external":
+            user_email = raw_token.get("email")
+            obj = await self._user_repository.get_by_email(user_email)
 
-        obj = await self._user_repository.get(user_uuid)
         if not obj:
             return
         model = ResponseUser.model_validate(obj, from_attributes=True)
