@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
-from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from fastapi import APIRouter, Depends, Request
+
+# from starlette.requests import Request
+from fastapi.responses import RedirectResponse
 
 from src.auth.services.oauth2 import OAuth2Service, get_oauth2_service
 

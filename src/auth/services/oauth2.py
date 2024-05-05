@@ -4,9 +4,9 @@ from http import HTTPStatus
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.jose import jwt
 from authlib.oidc.core import CodeIDToken
-from fastapi import Depends, HTTPException
-from starlette.requests import Request
+from fastapi import Depends, HTTPException, Request
 
+# from starlette.requests import Request
 from src.auth.core.config import settings
 from src.core.cache.redis import RedisCache, get_redis
 from src.core.db.repositories.login_history import (

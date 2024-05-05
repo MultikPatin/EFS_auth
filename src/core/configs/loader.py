@@ -23,5 +23,4 @@ def get_JSON_config(url: str) -> dict[str, str]:
     filename = download_file(url)
     with open(filename) as json_file:
         data = json.load(json_file)
-        print(type(data))
         return data
