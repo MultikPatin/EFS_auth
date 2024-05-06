@@ -1,7 +1,6 @@
-from http import HTTPStatus
 from typing import Any
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from jwt import (
     ExpiredSignatureError,
     InvalidSignatureError,
@@ -24,7 +23,7 @@ def validate_token(token) -> Any:
         )
     except (InvalidSignatureError, ExpiredSignatureError) as e:
         raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED,
+            status_code=status.UNAUTHORIZED,
             detail=f"{e}: invalid token",
         ) from None
     return raw_jwt
