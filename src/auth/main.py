@@ -3,7 +3,16 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.responses import ORJSONResponse
+from opentelemetry import trace
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+)
 from redis.asyncio import Redis
 
 from src.auth.cache import redis
@@ -42,6 +51,22 @@ async def lifespan(app: FastAPI) -> Any:
     await redis.redis.close()
 
 
+def configure_tracer() -> None:
+    trace.set_tracer_provider(TracerProvider())
+    trace.get_tracer_provider().add_span_processor(
+        BatchSpanProcessor(
+            JaegerExporter(
+                agent_host_name="localhost",
+                agent_port=6831,
+            )
+        )
+    )
+    trace.get_tracer_provider().add_span_processor(
+        BatchSpanProcessor(ConsoleSpanExporter())
+    )
+
+
+configure_tracer()
 app = FastAPI(
     title=settings.name,
     description=settings.description,
@@ -49,6 +74,20 @@ app = FastAPI(
     openapi_url=settings.openapi_url,
     lifespan=lifespan,
 )
+FastAPIInstrumentor.instrument_app(app)
+
+
+@app.middleware("http")
+async def check_request_id(request: Request, call_next):
+    request_id = request.headers.get("X-Request-Id")
+    if not request_id:
+        return ORJSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "X-Request-Id is required"},
+        )
+    response = await call_next(request)
+    return response
+
 
 app.include_router(
     users.router,
