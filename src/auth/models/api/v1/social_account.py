@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 
 class RequestSocialAccount(BaseModel):
@@ -16,13 +16,10 @@ class RequestSocialAccount(BaseModel):
     )
 
 
-# class LoginHistoryBase(RequestLoginHistory, UUIDMixin, TimeMixin):
-#     pass
-
-
-# class ResponseLoginHistory(LoginHistoryBase, UUIDMixin, TimeMixin):
-#     pass
-
-
-# class ResponseLoginHistoryPaginated(PaginatedMixin):
-#     results: list[ResponseLoginHistory]
+class RequestPasswordSet(BaseModel):
+    password: SecretStr = Field(
+        description="Новый пароль пользователя",
+        example="[2/#&/%M9:aOIzJ-Xb.0Ncod?HoQih",
+        min_length=1,
+        max_length=255,
+    )

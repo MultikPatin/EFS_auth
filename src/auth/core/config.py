@@ -24,7 +24,10 @@ class Settings(ProjectSettings):
         extra="ignore",
     )
     postgres: PostgresAuthSettings = PostgresAuthSettings()
+
     redis: RedisAuthSettings = RedisAuthSettings()
+
+    loader: LoaderSettings = LoaderSettings()
 
     name: str = Field(..., alias="AUTH_PROJECT_NAME")
     description: str = Field(..., alias="AUTH_PROJECT_DESCRIPTION")
@@ -56,10 +59,7 @@ class Settings(ProjectSettings):
     loader: LoaderSettings = LoaderSettings()
 
     google: GoogleSettings = GoogleSettings()
-
-    # google_config_url: str = Field(..., alias="GOOGLE_CONFIG_URL")
     google_config: dict = get_JSON_config(loader.google_url)
-    # google_state: SecretStr = Field(..., alias="GOOGLE_STATE")
 
 
 

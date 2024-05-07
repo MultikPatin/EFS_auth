@@ -1,32 +1,55 @@
+from http import HTTPStatus
+
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse, Response
 
-# from starlette.requests import Request
-from fastapi.responses import RedirectResponse
-
+from src.auth.models.api.base import StringRepresent
 from src.auth.services.oauth2 import OAuth2Service, get_oauth2_service
 
 router = APIRouter()
 
 
-@router.get("/login/", summary="Issuing a JWT token")
-async def login(
-    request: Request,
+@router.get(
+    "/oauth_login/",
+    summary="Generate oauth server authorization url and redirect there",
+)
+async def oauth_login(
     oauth2_service: OAuth2Service = Depends(get_oauth2_service),
 ) -> RedirectResponse:
-    authorization_url = await oauth2_service.get_authorization_url(request)
+    """Endpoint to get to oauth server
+
+    Generate oauth server authorization url and redirect there
+
+    Returns:
+    - **RedirectResponse**: Redirect to oauth server
+    """
+    authorization_url = await oauth2_service.get_authorization_url()
     return RedirectResponse(url=authorization_url)
 
 
-@router.get("/auth/", summary="Issuing a JWT token")
+@router.get(
+    "/auth/",
+    response_model=StringRepresent,
+    summary="Get user info from oauth server and login",
+)
 async def auth(
     request: Request,
+    response: Response,
     oauth2_service: OAuth2Service = Depends(get_oauth2_service),
-):
-    await oauth2_service.auth_via_google(request)
-    return RedirectResponse(url="/auth/v1/oauth2/logout/")
+) -> StringRepresent:
+    """User authentication in the Auth service
 
+    Get user info from oauth server and login
 
-@router.get("/logout/", summary="Logout")
-async def logout(request: Request):
-    request.session.pop("user", None)
-    return RedirectResponse(url="/auth/v1/oauth2/")
+    Returns:
+    - **StringRepresent**: Status code with message "The login was completed successfully"
+    """
+    result = await oauth2_service.auth_via_google(request, response)
+    if isinstance(result, dict):
+        user_data = await oauth2_service.checkin_oauth_user(result)
+    else:
+        user_data = result
+    await oauth2_service.login(request, user_data)
+    return StringRepresent(
+        code=HTTPStatus.OK, details="The login was completed successfully"
+    )
