@@ -8,254 +8,264 @@ services:
     environment:
       - xpack.security.enabled=false
       - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-    env_file:
-      - .env
+      - ES_JAVA_OPTS=${CONTENT_ELASTIC_ES_JAVA_OPTS}
+      - ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
     volumes:
       - elastic_content_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: curl -s http://${CONTENT_ELASTIC_HOST}:9200 >/dev/null || exit 1
+      test: curl -s http://${CONTENT_ELASTIC_HOST}:${CONTENT_ELASTIC_PORT} >/dev/null || exit 1
       interval: 30s
       timeout: 10s
       retries: 50
       start_period: 10s
     ports:
-      - "${CONTENT_ELASTIC_PORT_OUT}:9200"
+      - "${CONTENT_ELASTIC_PORT_LOCAL}:${CONTENT_ELASTIC_PORT}"
     networks:
       - services
 
   postgres_content:
     container_name: ${CONTENT_POSTGRES_HOST}
     extends:
-      file: infra/helpers/docker.yml
+      file: infra/helpers/base.yml
       service: postgres_base
-    env_file:
-      - infra/env/content/.env.postgres
+    environment:
+      - POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
     volumes:
       - postgres_content_data:/var/lib/postgresql/data/
       - ./postgres_content/:/docker-entrypoint-initdb.d
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -h ${CONTENT_POSTGRES_HOST}" ]
     ports:
-      - "${CONTENT_POSTGRES_PORT_OUT}:5432"
+      - "${CONTENT_POSTGRES_PORT_LOCAL}:${CONTENT_POSTGRES_PORT}"
 
   postgres_auth:
     container_name: ${AUTH_POSTGRES_HOST}
     extends:
-      file: infra/helpers/docker.yml
+      file: infra/helpers/base.yml
       service: postgres_base
-    env_file:
-      - infra/env/auth/.env.postgres
+    environment:
+      - POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - POSTGRES_PORT=${AUTH_POSTGRES_PORT}
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -h ${AUTH_POSTGRES_HOST}" ]
     ports:
-      - "${AUTH_POSTGRES_PORT_OUT}:5432"
-
-  migrations_auth:
-    build:
-      dockerfile: ./migrations/Dockerfile
-    container_name: migrations_auth
-    environment:
-      - LOCAL=False
-      - DEBUG=True
-    env_file:
-      - infra/env/auth/.env.postgres
-    depends_on:
-      postgres_auth:
-        condition: service_healthy
-    networks:
-      - services
+      - "${AUTH_POSTGRES_PORT_LOCAL}:${AUTH_POSTGRES_PORT}"
+#
+#  migrations_auth:
+#    build:
+#      dockerfile: ./migrations/Dockerfile
+#    container_name: migrations_auth
+#    environment:
+#      - LOCAL=False
+#      - DEBUG=True
+#    env_file:
+#      - infra/env/auth/.env.postgres
+#    depends_on:
+#      postgres_auth:
+#        condition: service_healthy
+#    networks:
+#      - services
 
   redis_content:
     container_name: ${CONTENT_REDIS_HOST}
     extends:
-      file: infra/helpers/docker.yml
+      file: infra/helpers/base.yml
       service: redis_base
-    env_file:
-      - infra/env/content/.env.redis
+    environment:
+      - REDIS_HOST=${CONTENT_REDIS_HOST}
+      - REDIS_PORT=${CONTENT_REDIS_PORT}
     volumes:
       - redis_content_data:/var/lib/redis/data
     ports:
-      - "${CONTENT_REDIS_PORT_OUT}:6379"
+      - "${CONTENT_REDIS_PORT_LOCAL}:${CONTENT_REDIS_PORT}"
 
   redis_auth:
     container_name: ${AUTH_REDIS_HOST}
     extends:
-      file: infra/helpers/docker.yml
+      file: infra/helpers/base.yml
       service: redis_base
-    env_file:
-      - infra/env/auth/.env.redis
+    environment:
+      - REDIS_HOST=${AUTH_REDIS_HOST}
+      - REDIS_PORT=${AUTH_REDIS_PORT}
     volumes:
       - redis_auth_data:/var/lib/redis/data
     ports:
-      - "${AUTH_REDIS_PORT_OUT}:6379"
-
-  etl_content_movies:
-      build:
-        dockerfile: src/etl_content/Dockerfile
-      restart: always
-      environment:
-        - ETL_NAME=movies
-        - LOCAL=False
-      env_file:
-        - infra/env/content/.env.etl
-        - infra/env/content/.env.postgres
-        - infra/env/content/.env.elastic
-      depends_on:
-        postgres_content:
-          condition: service_healthy
-        elastic_content:
-          condition: service_healthy
-      networks:
-        - services
-
-  etl_content_genres:
-    build:
-      dockerfile: src/etl_content/Dockerfile
-    environment:
-      - ETL_NAME=genres
-      - LOCAL=False
-    env_file:
-      - infra/env/content/.env.etl
-      - infra/env/content/.env.postgres
-      - infra/env/content/.env.elastic
-    depends_on:
-      postgres_content:
-        condition: service_healthy
-      elastic_content:
-        condition: service_healthy
-    networks:
-      - services
-
-  etl_content_persons:
-    build:
-      dockerfile: src/etl_content/Dockerfile
-    environment:
-      - ETL_NAME=persons
-      - LOCAL=False
-    env_file:
-      - infra/env/content/.env.etl
-      - infra/env/content/.env.postgres
-      - infra/env/content/.env.elastic
-    depends_on:
-      postgres_content:
-        condition: service_healthy
-      elastic_content:
-        condition: service_healthy
-    networks:
-      - services
-
-  service_content:
-    build:
-      dockerfile: src/content/Dockerfile
-    container_name: ${CONTENT_API_HOST}
-    restart: always
-    env_file:
-      - infra/env/content/.env.api
-      - infra/env/content/.env.elastic
-      - infra/env/content/.env.redis
-    environment:
-      - LOCAL=False
-      - DEBUG=True
-    depends_on:
-      postgres_content:
-        condition: service_healthy
-      elastic_content:
-        condition: service_healthy
-      redis_content:
-        condition: service_healthy
-    ports:
-      - "${CONTENT_API_PORT_OUT}:8000"
-    networks:
-      - services
-
-  service_auth:
-    build:
-      dockerfile: src/auth/Dockerfile
-    container_name: ${AUTH_API_HOST}
-    restart: always
-    env_file:
-      - infra/env/auth/.env.api
-      - infra/env/auth/.env.postgres
-      - infra/env/auth/.env.redis
-    environment:
-      - LOCAL=False
-      - DEBUG=True
-    depends_on:
-      postgres_auth:
-        condition: service_healthy
-      redis_auth:
-        condition: service_healthy
-    ports:
-      - "${AUTH_API_PORT_OUT}:8000"
-    networks:
-      - services
-
-  service_admin:
-    build:
-      dockerfile: src/admin/Dockerfile
-    container_name: ${ADMIN_API_HOST}
-    restart: always
-    env_file:
-      - infra/env/admin/.env.api
-      - infra/env/content/.env.postgres
-    environment:
-      - LOCAL=False
-    volumes:
-      - static:/backend_static
-    depends_on:
-      postgres_content:
-        condition: service_healthy
-    ports:
-      - "${ADMIN_API_PORT_OUT}:8000"
-    networks:
-      - services
-
-  nginx:
-    image: nginx:${NGINX_VERSION}
-    volumes:
-      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
-      - static:/staticfiles/
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      postgres_auth:
-        condition: service_healthy
-      redis_auth:
-        condition: service_healthy
+      - "${AUTH_REDIS_PORT_LOCAL}:${AUTH_REDIS_PORT}"
+#
+#  etl_content_movies:
+#      build:
+#        dockerfile: src/etl_content/Dockerfile
+#      restart: always
+#      environment:
+#        - ETL_NAME=movies
+#        - LOCAL=False
+#      env_file:
+#        - infra/env/content/.env.etl
+#        - infra/env/content/.env.postgres
+#        - infra/env/content/.env.elastic
+#      depends_on:
+#        postgres_content:
+#          condition: service_healthy
+#        elastic_content:
+#          condition: service_healthy
+#      networks:
+#        - services
+#
+#  etl_content_genres:
+#    build:
+#      dockerfile: src/etl_content/Dockerfile
+#    environment:
+#      - ETL_NAME=genres
+#      - LOCAL=False
+#    env_file:
+#      - infra/env/content/.env.etl
+#      - infra/env/content/.env.postgres
+#      - infra/env/content/.env.elastic
+#    depends_on:
+#      postgres_content:
+#        condition: service_healthy
+#      elastic_content:
+#        condition: service_healthy
+#    networks:
+#      - services
+#
+#  etl_content_persons:
+#    build:
+#      dockerfile: src/etl_content/Dockerfile
+#    environment:
+#      - ETL_NAME=persons
+#      - LOCAL=False
+#    env_file:
+#      - infra/env/content/.env.etl
+#      - infra/env/content/.env.postgres
+#      - infra/env/content/.env.elastic
+#    depends_on:
+#      postgres_content:
+#        condition: service_healthy
+#      elastic_content:
+#        condition: service_healthy
+#    networks:
+#      - services
+#
+#  service_content:
+#    build:
+#      dockerfile: src/content/Dockerfile
+#    container_name: ${CONTENT_API_HOST}
+#    restart: always
+#    env_file:
+#      - infra/env/content/.env.api
+#      - infra/env/content/.env.elastic
+#      - infra/env/content/.env.redis
+#    environment:
+#      - LOCAL=False
+#      - DEBUG=True
+#    depends_on:
 #      postgres_content:
 #        condition: service_healthy
 #      elastic_content:
 #        condition: service_healthy
 #      redis_content:
 #        condition: service_healthy
-      service_auth:
-        condition: service_started
+#    ports:
+#      - "${CONTENT_API_PORT_OUT}:8000"
+#    networks:
+#      - services
+#
+#  service_auth:
+#    build:
+#      dockerfile: src/auth/Dockerfile
+#    container_name: ${AUTH_API_HOST}
+#    restart: always
+#    env_file:
+#      - infra/env/auth/.env.api
+#      - infra/env/auth/.env.postgres
+#      - infra/env/auth/.env.redis
+#    environment:
+#      - LOCAL=False
+#      - DEBUG=True
+#    depends_on:
+#      postgres_auth:
+#        condition: service_healthy
+#      redis_auth:
+#        condition: service_healthy
+#    ports:
+#      - "${AUTH_API_PORT_OUT}:8000"
+#    networks:
+#      - services
+#
+#  service_admin:
+#    build:
+#      dockerfile: src/admin/Dockerfile
+#    container_name: ${ADMIN_API_HOST}
+#    restart: always
+#    env_file:
+#      - infra/env/admin/.env.api
+#      - infra/env/content/.env.postgres
+#    environment:
+#      - LOCAL=False
+#    volumes:
+#      - static:/backend_static
+#    depends_on:
+#      postgres_content:
+#        condition: service_healthy
+#    ports:
+#      - "${ADMIN_API_PORT_OUT}:8000"
+#    networks:
+#      - services
+#
+#  nginx:
+#    image: nginx:${NGINX_VERSION}
+#    volumes:
+#      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
+#      - static:/staticfiles/
+#    restart: unless-stopped
+#    env_file:
+#      - .env
+#    depends_on:
+#      postgres_auth:
+#        condition: service_healthy
+#      redis_auth:
+#        condition: service_healthy
+#      postgres_content:
+#        condition: service_healthy
+#      elastic_content:
+#        condition: service_healthy
+#      redis_content:
+#        condition: service_healthy
+#      service_auth:
+#        condition: service_started
 #      service_content:
 #        condition: service_started
-    ports:
-      - "443:443"
-      - "80:80"
-    networks:
-      - services
-
-  jaeger:
-    image: jaegertracing/all-in-one:${JAEGER_VERSION}
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      service_auth:
-        condition: service_started
-    ports:
-      - "${JAEGER_PORT}:16686"
-      - "6831:6831/udp"
-    networks:
-      - services
+#    ports:
+#      - "443:443"
+#      - "80:80"
+#    networks:
+#      - services
+#
+#  jaeger:
+#    image: jaegertracing/all-in-one:${JAEGER_VERSION}
+#    restart: always
+#    env_file:
+#      - .env
+#    depends_on:
+#      service_auth:
+#        condition: service_started
+#    ports:
+#      - "${JAEGER_PORT}:16686"
+#      - "6831:6831/udp"
+#    networks:
+#      - services
 
 volumes:
   elastic_content_data:

@@ -1,11 +1,10 @@
 import os
 
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class ServiceSettings(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore")
     host: str = ""
     port: int = 0
     host_local: str = ""
