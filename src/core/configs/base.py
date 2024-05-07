@@ -1,11 +1,10 @@
 import os
 
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class ServiceSettings(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore")
     host: str = ""
     port: int = 0
     host_local: str = ""
@@ -24,7 +23,5 @@ class ServiceSettings(BaseSettings):
 
 
 class ProjectSettings(ServiceSettings):
-    name: str = Field(..., alias="PROJECT_NAME")
-    description: str = Field(..., alias="PROJECT_DESCRIPTION")
     debug: bool = Field("True", alias="DEBUG")
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

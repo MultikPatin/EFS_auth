@@ -1,43 +1,41 @@
 from logging import config as logging_config
 
+from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
 from src.content.core.logger import LOGGING
 from src.core.configs.base import ProjectSettings
-from src.core.configs.elastic import ElasticSettings
-from src.core.configs.redis import RedisSettings
+from src.core.configs.elastic import ElasticContentSettings
+from src.core.configs.redis import RedisContentSettings
 
 logging_config.dictConfig(LOGGING)
+load_dotenv()
 
 
 class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/env/content/.env.api",
+        env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
-    elastic: ElasticSettings = ElasticSettings(
-        _env_file="./infra/env/content/.env.elastic",
-        _env_file_encoding="utf-8",
-    )
-    redis: RedisSettings = RedisSettings(
-        _env_file="./infra/env/content/.env.redis",
-        _env_file_encoding="utf-8",
-    )
-
-    docs_url: str = Field(..., alias="API_DOCS_URL")
-    openapi_url: str = Field(..., alias="API_OPENAPI_URL")
-    host: str = Field(..., alias="API_HOST")
-    port: int = Field(..., alias="API_PORT")
+    elastic: ElasticContentSettings = ElasticContentSettings()
+    redis: RedisContentSettings = RedisContentSettings()
+    name: str = Field(..., alias="CONTENT_PROJECT_NAME")
+    description: str = Field(..., alias="CONTENT_PROJECT_DESCRIPTION")
+    host: str = Field(..., alias="CONTENT_API_HOST")
+    port: int = Field(..., alias="CONTENT_API_PORT")
+    docs_url: str = Field(..., alias="CONTENT_API_DOCS_URL")
+    openapi_url: str = Field(..., alias="CONTENT_API_OPENAPI_URL")
 
     cache_ex_for_films: int = Field(
-        ..., alias="API_CACHE_EXPIRE_FOR_FILM_SERVICE"
+        ..., alias="CONTENT_API_CACHE_EXPIRE_FOR_FILM_SERVICE"
     )
     cache_ex_for_genres: int = Field(
-        ..., alias="API_CACHE_EXPIRE_FOR_GENRES_SERVICE"
+        ..., alias="CONTENT_API_CACHE_EXPIRE_FOR_GENRES_SERVICE"
     )
     cache_ex_for_persons: int = Field(
-        ..., alias="API_CACHE_EXPIRE_FOR_PERSON_SERVICE"
+        ..., alias="CONTENT_API_CACHE_EXPIRE_FOR_PERSON_SERVICE"
     )
 
 

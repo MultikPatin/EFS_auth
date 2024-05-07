@@ -2,25 +2,25 @@ from pydantic import Field, SecretStr
 from pydantic_settings.main import SettingsConfigDict
 
 from src.core.configs.base import ProjectSettings
-from src.core.configs.postgres import PostgresSettings
+from src.core.configs.postgres import (
+    PostgresAuthSettings,
+    PostgresContentSettings,
+)
 
 
 class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/env/admin/.env.api",
+        env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
-    postgres_content: PostgresSettings = PostgresSettings(
-        _env_file="./infra/env/content/.env.postgres",
-        _env_file_encoding="utf-8",
-    )
-    postgres_auth: PostgresSettings = PostgresSettings(
-        _env_file="./infra/env/auth/.env.postgres",
-        _env_file_encoding="utf-8",
-    )
-    allowed_hosts: str = Field(default=..., alias="ALLOWED_HOSTS")
-    debug: str = Field(default=..., alias="DEBUG")
-    secret_key: SecretStr = Field(default=..., alias="SECRET_KEY")
+    postgres_content: PostgresContentSettings = PostgresContentSettings()
+    postgres_auth: PostgresAuthSettings = PostgresAuthSettings()
+    host: str = Field(..., alias="ADMIN_API_HOST")
+    port: int = Field(..., alias="ADMIN_API_PORT")
+    allowed_hosts: str = Field(default=..., alias="ADMIN_ALLOWED_HOSTS")
+    debug: str = Field(default=..., alias="ADMIN_DEBUG")
+    secret_key: SecretStr = Field(default=..., alias="ADMIN_SECRET_KEY")
 
     @property
     def get_debug(self) -> bool:

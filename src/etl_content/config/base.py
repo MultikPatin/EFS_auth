@@ -2,27 +2,21 @@ from pydantic.fields import Field
 from pydantic_settings import BaseSettings
 from pydantic_settings.main import SettingsConfigDict
 
-from src.core.configs.elastic import ElasticSettings
+from src.core.configs.elastic import ElasticContentSettings
 from src.core.configs.postgres import PostgresSettings
 from src.etl_content.config.postgres import PostgresSettingsWithPsycoConnect
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/env/content/.env.etl",
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    postgres: PostgresSettings = PostgresSettingsWithPsycoConnect(
-        _env_file="./infra/env/content/.env.postgres",
-        _env_file_encoding="utf-8",
-    )
-    elastic: ElasticSettings = ElasticSettings(
-        _env_file="./infra/env/content/.env.elastic",
-        _env_file_encoding="utf-8",
-    )
-    buffer_size: int = Field(..., alias="ETL_BUFFERED_ROWS")
-    sleep_time: int = Field(..., alias="ETL_SLEEP_TIME")
+    postgres: PostgresSettings = PostgresSettingsWithPsycoConnect()
+    elastic: ElasticContentSettings = ElasticContentSettings()
+    buffer_size: int = Field(..., alias="ETL_CONTENT_BUFFERED_ROWS")
+    sleep_time: int = Field(..., alias="ETL_CONTENT_SLEEP_TIME")
 
 
 settings = Settings()

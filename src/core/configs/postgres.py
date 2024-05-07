@@ -15,10 +15,9 @@ class PostgresSettings(ServiceSettings):
     password: SecretStr = Field(..., alias="POSTGRES_PASSWORD")
     host: str = Field(..., alias="POSTGRES_HOST")
     port: int = Field(..., alias="POSTGRES_PORT")
-
-    local: bool = Field("True", alias="LOCAL")
-    host_local: str = Field("localhost", alias="POSTGRES_HOST_LOCAL")
-    port_local: int = Field(5432, alias="POSTGRES_PORT_LOCAL")
+    host_local: str = Field(..., alias="POSTGRES_HOST_LOCAL")
+    port_local: int = Field(..., alias="POSTGRES_PORT_LOCAL")
+    sqlalchemy_echo: bool = Field("True", alias="SQLALCHEMY_ECHO")
 
     @property
     def postgres_connection_url(self) -> URL:
@@ -30,3 +29,45 @@ class PostgresSettings(ServiceSettings):
             port=self.correct_port(),
             database=self.database,
         )
+
+
+async def get_postgres_settings() -> PostgresSettings:
+    return PostgresSettings()
+
+
+class PostgresContentSettings(PostgresSettings):
+    """
+    This class is used to store the Postgres content db connection settings.
+    """
+
+    database: str = Field(..., alias="CONTENT_POSTGRES_DB")
+    user: str = Field(..., alias="CONTENT_POSTGRES_USER")
+    password: SecretStr = Field(..., alias="CONTENT_POSTGRES_PASSWORD")
+    host: str = Field(..., alias="CONTENT_POSTGRES_HOST")
+    port: int = Field(..., alias="CONTENT_POSTGRES_PORT")
+    host_local: str = Field(..., alias="CONTENT_POSTGRES_HOST_LOCAL")
+    port_local: int = Field(..., alias="CONTENT_POSTGRES_PORT_LOCAL")
+    sqlalchemy_echo: bool = Field("True", alias="CONTENT_SQLALCHEMY_ECHO")
+
+
+async def get_postgres_content_settings() -> PostgresContentSettings:
+    return PostgresContentSettings()
+
+
+class PostgresAuthSettings(PostgresContentSettings):
+    """
+    This class is used to store the Postgres auth db connection settings.
+    """
+
+    database: str = Field(..., alias="AUTH_POSTGRES_DB")
+    user: str = Field(..., alias="AUTH_POSTGRES_USER")
+    password: SecretStr = Field(..., alias="AUTH_POSTGRES_PASSWORD")
+    host: str = Field(..., alias="AUTH_POSTGRES_HOST")
+    port: int = Field(..., alias="AUTH_POSTGRES_PORT")
+    host_local: str = Field(..., alias="AUTH_POSTGRES_HOST_LOCAL")
+    port_local: int = Field(..., alias="AUTH_POSTGRES_PORT_LOCAL")
+    sqlalchemy_echo: bool = Field("True", alias="AUTH_SQLALCHEMY_ECHO")
+
+
+async def get_postgres_auth_settings() -> PostgresAuthSettings:
+    return PostgresAuthSettings()
