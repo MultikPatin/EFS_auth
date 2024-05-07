@@ -314,35 +314,33 @@ services:
     networks:
       - services
 
-#  nginx:
-#    image: nginx:${NGINX_VERSION}
-#    volumes:
-#      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-#      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
-#      - static:/staticfiles/
-#    restart: unless-stopped
-#    env_file:
-#      - .env
-#    depends_on:
-#      postgres_auth:
-#        condition: service_healthy
-#      redis_auth:
-#        condition: service_healthy
-#      postgres_content:
-#        condition: service_healthy
-#      elastic_content:
-#        condition: service_healthy
-#      redis_content:
-#        condition: service_healthy
-#      service_auth:
-#        condition: service_started
-#      service_content:
-#        condition: service_started
-#    ports:
-#      - "443:443"
-#      - "80:80"
-#    networks:
-#      - services
+  nginx:
+    image: nginx:${NGINX_VERSION}
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
+      - static:/staticfiles/
+    restart: unless-stopped
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_healthy
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+      service_auth:
+        condition: service_started
+      service_content:
+        condition: service_started
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - services
 
   jaeger:
     image: jaegertracing/all-in-one:${JAEGER_VERSION}
