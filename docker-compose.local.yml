@@ -143,41 +143,59 @@ services:
       networks:
         - services
 
-#  etl_content_genres:
-#    build:
-#      dockerfile: src/etl_content/Dockerfile
-#    environment:
-#      - ETL_NAME=genres
-#      - LOCAL=False
-#    env_file:
-#      - infra/env/content/.env.etl
-#      - infra/env/content/.env.postgres
-#      - infra/env/content/.env.elastic
-#    depends_on:
-#      postgres_content:
-#        condition: service_healthy
-#      elastic_content:
-#        condition: service_healthy
-#    networks:
-#      - services
-#
-#  etl_content_persons:
-#    build:
-#      dockerfile: src/etl_content/Dockerfile
-#    environment:
-#      - ETL_NAME=persons
-#      - LOCAL=False
-#    env_file:
-#      - infra/env/content/.env.etl
-#      - infra/env/content/.env.postgres
-#      - infra/env/content/.env.elastic
-#    depends_on:
-#      postgres_content:
-#        condition: service_healthy
-#      elastic_content:
-#        condition: service_healthy
-#    networks:
-#      - services
+  etl_content_genres:
+    build:
+      dockerfile: src/etl_content/Dockerfile
+    environment:
+      - ETL_NAME=genres
+      - LOCAL=False
+      - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+      - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
+      - CONTENT_ELASTIC_PORT_LOCAL=${CONTENT_ELASTIC_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
+      - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+    networks:
+      - services
+
+  etl_content_persons:
+    build:
+      dockerfile: src/etl_content/Dockerfile
+    environment:
+      - ETL_NAME=persons
+      - LOCAL=False
+      - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+      - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
+      - CONTENT_ELASTIC_PORT_LOCAL=${CONTENT_ELASTIC_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
+      - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+    networks:
+      - services
 
   service_content:
     build:
