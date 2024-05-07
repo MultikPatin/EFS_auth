@@ -278,26 +278,42 @@ services:
     networks:
       - services
 
-#  service_admin:
-#    build:
-#      dockerfile: src/admin/Dockerfile
-#    container_name: ${ADMIN_API_HOST}
-#    restart: always
-#    env_file:
-#      - infra/env/admin/.env.api
-#      - infra/env/content/.env.postgres
-#    environment:
-#      - LOCAL=False
-#    volumes:
-#      - static:/backend_static
-#    depends_on:
-#      postgres_content:
-#        condition: service_healthy
-#    ports:
-#      - "${ADMIN_API_PORT_OUT}:8000"
-#    networks:
-#      - services
-#
+  service_admin:
+    build:
+      dockerfile: src/admin/Dockerfile
+    container_name: ${ADMIN_API_HOST}
+    restart: always
+    environment:
+      - LOCAL=False
+      - ADMIN_DEBUG=${ADMIN_DEBUG}
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ADMIN_API_HOST=${ADMIN_API_HOST}
+      - ADMIN_API_PORT=${ADMIN_API_PORT}
+      - ADMIN_ALLOWED_HOSTS=${ADMIN_ALLOWED_HOSTS}
+      - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY}
+    volumes:
+      - static:/backend_static
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+    ports:
+      - "${ADMIN_API_PORT_OUT}:${ADMIN_API_PORT}"
+    networks:
+      - services
+
 #  nginx:
 #    image: nginx:${NGINX_VERSION}
 #    volumes:
