@@ -1,33 +1,38 @@
 import logging
-import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TypeVar
 
+from dotenv import load_dotenv
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
 
-from src.core.configs.postgres import PostgresSettings
+from src.core.configs.postgres import (
+    PostgresAuthSettings,
+    PostgresContentSettings,
+    PostgresSettings,
+    get_postgres_auth_settings,
+    get_postgres_content_settings,
+    get_postgres_settings,
+)
 from src.core.db.clients.abstract import AbstractDBClient
-
-sqlalchemy_echo = os.getenv("SQLALCHEMY_ECHO", "True") == "True"
 
 logger = logging.getLogger(__name__)
 logger.level = logging.DEBUG
 
-settings = PostgresSettings(
-    _env_file="./infra/var/auth/.env.postgres",
-    _env_file_encoding="utf-8",
-)
+D = TypeVar("D", bound=PostgresSettings)
+load_dotenv()
 
 
 class PostgresDatabase(AbstractDBClient):
     def __init__(self, settings: PostgresSettings) -> None:
         self._async_session_factory = async_sessionmaker(
             create_async_engine(
-                settings.postgres_connection_url, echo=sqlalchemy_echo
+                settings.postgres_connection_url, echo=settings.sqlalchemy_echo
             )
         )
 
@@ -46,5 +51,23 @@ class PostgresDatabase(AbstractDBClient):
             await session.close()
 
 
-def get_postgres_db() -> PostgresDatabase:
+def get_postgres_db(
+    settings: PostgresSettings = Depends(get_postgres_settings, use_cache=True),
+) -> PostgresDatabase:
+    return PostgresDatabase(settings)
+
+
+def get_postgres_content_db(
+    settings: PostgresContentSettings = Depends(
+        get_postgres_content_settings, use_cache=True
+    ),
+) -> PostgresDatabase:
+    return PostgresDatabase(settings)
+
+
+def get_postgres_auth_db(
+    settings: PostgresAuthSettings = Depends(
+        get_postgres_auth_settings, use_cache=True
+    ),
+) -> PostgresDatabase:
     return PostgresDatabase(settings)

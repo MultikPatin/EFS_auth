@@ -8,13 +8,13 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from src.core.configs.postgres import PostgresSettings
+from src.core.configs.postgres import PostgresAuthSettings
 from src.core.db.entities import Entity
 
 
-class Settings(PostgresSettings):
+class Settings(PostgresAuthSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/env/auth/.env.postgres",
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -25,6 +25,7 @@ settings = Settings()
 
 if settings.debug:
     print(settings.model_dump())
+    print(settings.postgres_connection_url.render_as_string())
 
 config = context.config
 config.set_main_option(

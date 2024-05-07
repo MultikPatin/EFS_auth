@@ -1,52 +1,54 @@
 from logging import config as logging_config
 
 from async_fastapi_jwt_auth import AuthJWT
+from dotenv import load_dotenv
 from pydantic import Field, SecretStr
 from pydantic_settings import SettingsConfigDict
 
 from src.auth.core.logger import LOGGING
 from src.core.configs.base import ProjectSettings
-from src.core.configs.postgres import PostgresSettings
-from src.core.configs.redis import RedisSettings
+from src.core.configs.postgres import PostgresAuthSettings
+from src.core.configs.redis import RedisAuthSettings
 
 logging_config.dictConfig(LOGGING)
+
+load_dotenv()
 
 
 class Settings(ProjectSettings):
     model_config = SettingsConfigDict(
-        env_file="./infra/env/auth/.env.api",
+        env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
-    postgres: PostgresSettings = PostgresSettings(
-        _env_file="./infra/env/auth/.env.postgres",
-        _env_file_encoding="utf-8",
+    postgres: PostgresAuthSettings = PostgresAuthSettings()
+    redis: RedisAuthSettings = RedisAuthSettings()
+
+    name: str = Field(..., alias="AUTH_PROJECT_NAME")
+    description: str = Field(..., alias="AUTH_PROJECT_DESCRIPTION")
+    host: str = Field(..., alias="AUTH_API_HOST")
+    port: int = Field(..., alias="AUTH_API_PORT")
+    docs_url: str = Field(..., alias="AUTH_API_DOCS_URL")
+    openapi_url: str = Field(..., alias="AUTH_API_OPENAPI_URL")
+
+    empty_role_name: str = Field(..., alias="AUTH_EMPTY_ROLE_NAME")
+    empty_role_description: str = Field(
+        ..., alias="AUTH_EMPTY_ROLE_DESCRIPTION"
     )
-    redis: RedisSettings = RedisSettings(
-        _env_file="./infra/env/auth/.env.redis",
-        _env_file_encoding="utf-8",
-    )
 
-    docs_url: str = Field(..., alias="API_DOCS_URL")
-    openapi_url: str = Field(..., alias="API_OPENAPI_URL")
-    host: str = Field(..., alias="API_HOST")
-    port: int = Field(..., alias="API_PORT")
+    admin_email: str = Field(..., alias="AUTH_ADMIN_EMAIL")
+    admin_password: SecretStr = Field(..., alias="AUTH_ADMIN_PASSWORD")
 
-    empty_role_name: str = Field(..., alias="EMPTY_ROLE_NAME")
-    empty_role_description: str = Field(..., alias="EMPTY_ROLE_DESCRIPTION")
+    token_expire_time: int = Field(..., alias="AUTH_TOKEN_EXPIRE_TIME")
+    user_max_sessions: int = Field(..., alias="AUTH_USER_MAX_SESSIONS")
 
-    admin_email: str = Field(..., alias="ADMIN_EMAIL")
-    admin_password: SecretStr = Field(..., alias="ADMIN_PASSWORD")
-
-    token_expire_time: int = Field(..., alias="TOKEN_EXPIRE_TIME")
-    user_max_sessions: int = Field(..., alias="USER_MAX_SESSIONS")
-
-    authjwt_secret_key: str = Field(..., alias="AUTHJWT_SECRET_KEY")
+    authjwt_secret_key: str = Field(..., alias="AUTH_AUTHJWT_SECRET_KEY")
     authjwt_token_location: set = {"cookies"}
     authjwt_cookie_csrf_protect: bool = (
-        Field(..., alias="AUTHJWT_COOKIE_CSRF_PROTECT") == "True"
+        Field(..., alias="AUTH_AUTHJWT_COOKIE_CSRF_PROTECT") == "True"
     )
     authjwt_cookie_secure: bool = (
-        Field(..., alias="AUTHJWT_COOKIE_SECURE") == "True"
+        Field(..., alias="AUTH_AUTHJWT_COOKIE_SECURE") == "True"
     )
 
 

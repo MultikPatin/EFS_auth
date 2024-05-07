@@ -23,7 +23,5 @@ class ServiceSettings(BaseSettings):
 
 
 class ProjectSettings(ServiceSettings):
-    name: str = Field(..., alias="PROJECT_NAME")
-    description: str = Field(..., alias="PROJECT_DESCRIPTION")
     debug: bool = Field("True", alias="DEBUG")
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

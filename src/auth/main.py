@@ -26,7 +26,7 @@ from src.auth.endpoints.v1 import (
     users_additional,
 )
 from src.auth.utils.startup import StartUpService
-from src.core.configs.postgres import PostgresSettings
+from src.core.configs.postgres import PostgresAuthSettings
 from src.core.db.clients.postgres import PostgresDatabase
 from src.core.utils.logger import create_logger
 
@@ -34,12 +34,7 @@ from src.core.utils.logger import create_logger
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
-        PostgresDatabase(
-            PostgresSettings(
-                _env_file="./infra/var/auth/.env.postgres",
-                _env_file_encoding="utf-8",
-            )
-        ),
+        PostgresDatabase(PostgresAuthSettings()),
     )
     await startup_methods.create_empty_role()
     await startup_methods.create_admin_user()

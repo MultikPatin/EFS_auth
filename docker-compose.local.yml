@@ -42,6 +42,8 @@ services:
       test: [ "CMD-SHELL", "pg_isready -h ${CONTENT_POSTGRES_HOST}" ]
     ports:
       - "${CONTENT_POSTGRES_PORT_LOCAL}:${CONTENT_POSTGRES_PORT}"
+    networks:
+      - services
 
   postgres_auth:
     container_name: ${AUTH_POSTGRES_HOST}
@@ -60,21 +62,28 @@ services:
       test: [ "CMD-SHELL", "pg_isready -h ${AUTH_POSTGRES_HOST}" ]
     ports:
       - "${AUTH_POSTGRES_PORT_LOCAL}:${AUTH_POSTGRES_PORT}"
-#
-#  migrations_auth:
-#    build:
-#      dockerfile: ./migrations/Dockerfile
-#    container_name: migrations_auth
-#    environment:
-#      - LOCAL=False
-#      - DEBUG=True
-#    env_file:
-#      - infra/env/auth/.env.postgres
-#    depends_on:
-#      postgres_auth:
-#        condition: service_healthy
-#    networks:
-#      - services
+    networks:
+      - services
+
+  migrations_auth:
+    build:
+      dockerfile: ./migrations/Dockerfile
+    container_name: migrations_auth
+    environment:
+      - LOCAL=False
+      - DEBUG=True
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+    networks:
+      - services
 
   redis_content:
     container_name: ${CONTENT_REDIS_HOST}
@@ -88,6 +97,8 @@ services:
       - redis_content_data:/var/lib/redis/data
     ports:
       - "${CONTENT_REDIS_PORT_LOCAL}:${CONTENT_REDIS_PORT}"
+    networks:
+      - services
 
   redis_auth:
     container_name: ${AUTH_REDIS_HOST}
@@ -101,6 +112,8 @@ services:
       - redis_auth_data:/var/lib/redis/data
     ports:
       - "${AUTH_REDIS_PORT_LOCAL}:${AUTH_REDIS_PORT}"
+    networks:
+      - services
 #
 #  etl_content_movies:
 #      build:
@@ -180,29 +193,51 @@ services:
 #      - "${CONTENT_API_PORT_OUT}:8000"
 #    networks:
 #      - services
-#
-#  service_auth:
-#    build:
-#      dockerfile: src/auth/Dockerfile
-#    container_name: ${AUTH_API_HOST}
-#    restart: always
-#    env_file:
-#      - infra/env/auth/.env.api
-#      - infra/env/auth/.env.postgres
-#      - infra/env/auth/.env.redis
-#    environment:
-#      - LOCAL=False
-#      - DEBUG=True
-#    depends_on:
-#      postgres_auth:
-#        condition: service_healthy
-#      redis_auth:
-#        condition: service_healthy
-#    ports:
-#      - "${AUTH_API_PORT_OUT}:8000"
-#    networks:
-#      - services
-#
+
+  service_auth:
+    build:
+      dockerfile: src/auth/Dockerfile
+    container_name: ${AUTH_API_HOST}
+    restart: always
+    environment:
+      - LOCAL=False
+      - DEBUG=True
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - AUTH_REDIS_HOST=${AUTH_REDIS_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_REDIS_PORT}
+      - AUTH_REDIS_HOST_LOCAL=${AUTH_REDIS_HOST_LOCAL}
+      - AUTH_REDIS_PORT_LOCAL=${vREDIS_PORT_LOCAL}
+      - AUTH_PROJECT_NAME=${AUTH_PROJECT_NAME}
+      - AUTH_PROJECT_DESCRIPTION=${AUTH_PROJECT_DESCRIPTION}
+      - AUTH_API_HOST=${AUTH_API_HOST}
+      - AUTH_API_PORT=${AUTH_API_PORT}
+      - AUTH_API_DOCS_URL=${AUTH_API_DOCS_URL}
+      - AUTH_API_OPENAPI_URL=${AUTH_API_OPENAPI_URL}
+      - AUTH_EMPTY_ROLE_NAME=${AUTH_EMPTY_ROLE_NAME}
+      - AUTH_EMPTY_ROLE_DESCRIPTION=${AUTH_EMPTY_ROLE_DESCRIPTION}
+      - AUTH_ADMIN_EMAIL=${AUTH_ADMIN_EMAIL}
+      - AUTH_ADMIN_PASSWORD=${AUTH_ADMIN_PASSWORD}
+      - AUTH_TOKEN_EXPIRE_TIME=${AUTH_TOKEN_EXPIRE_TIME}
+      - AUTH_USER_MAX_SESSIONS=${AUTH_USER_MAX_SESSIONS}
+      - AUTH_AUTHJWT_SECRET_KEY=${AUTH_AUTHJWT_SECRET_KEY}
+      - AUTH_AUTHJWT_COOKIE_CSRF_PROTECT=${AUTH_AUTHJWT_COOKIE_CSRF_PROTECT}
+      - AUTH_AUTHJWT_COOKIE_SECURE=${AUTH_AUTHJWT_COOKIE_SECURE}
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_healthy
+    ports:
+      - "${AUTH_API_PORT_LOCAL}:${AUTH_API_PORT}"
+    networks:
+      - services
+
 #  service_admin:
 #    build:
 #      dockerfile: src/admin/Dockerfile
