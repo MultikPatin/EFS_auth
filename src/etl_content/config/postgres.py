@@ -1,9 +1,9 @@
 from psycopg2.extras import DictCursor
 
-from src.core.configs.postgres import PostgresSettings
+from src.core.configs.postgres import PostgresContentSettings
 
 
-class PostgresSettingsWithPsycoConnect(PostgresSettings):
+class PostgresSettingsWithPsycoConnect(PostgresContentSettings):
     @property
     def psycopg2_connect(self) -> dict:
         return {
