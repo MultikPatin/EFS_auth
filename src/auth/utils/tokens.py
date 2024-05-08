@@ -18,7 +18,7 @@ from src.core.db.repositories.user import UserRepository, get_user_repository
 auth_dep = AuthJWTBearer()
 
 
-class Token:
+class TokenUtils:
     def __init__(
         self,
         cache: RedisCache,
@@ -81,5 +81,5 @@ def get_token(
         get_login_history_repository
     ),
     authorize: AuthJWT = Depends(auth_dep),
-) -> Token:
-    return Token(cache, user_repository, history_repository, authorize)
+) -> TokenUtils:
+    return TokenUtils(cache, user_repository, history_repository, authorize)

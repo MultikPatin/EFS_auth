@@ -9,7 +9,7 @@ from src.auth.cache.redis import RedisCache, get_redis
 from src.auth.models.api.v1.login_history import RequestLoginHistory
 from src.auth.models.api.v1.tokens import RequestLogin
 from src.auth.models.db.token import UserClaims
-from src.auth.utils.tokens import Token, get_token
+from src.auth.utils.tokens import TokenUtils, get_token
 from src.auth.validators.token import validate_token
 from src.core.db.repositories.login_history import (
     LoginHistoryRepository,
@@ -27,7 +27,7 @@ class TokenService:
         user_repository: UserRepository,
         history_repository: LoginHistoryRepository,
         authorize: AuthJWT,
-        token: Token,
+        token: TokenUtils,
     ):
         self._cache = cache
         self._user_repository = user_repository
@@ -132,7 +132,7 @@ def get_token_service(
         get_login_history_repository
     ),
     authorize: AuthJWT = Depends(auth_dep),
-    token: Token = Depends(get_token),
+    token: TokenUtils = Depends(get_token),
 ) -> TokenService:
     return TokenService(
         cache, user_repository, history_repository, authorize, token

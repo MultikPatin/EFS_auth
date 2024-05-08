@@ -16,7 +16,8 @@ from src.auth.models.api.v1.social_account import RequestSocialAccount
 from src.auth.models.api.v1.users import RequestUserCreate
 from src.auth.models.db.token import UserClaims
 from src.auth.models.db.user import UserDB
-from src.auth.utils.tokens import Token, get_token
+from src.auth.oauth_clients.google import OauthGoogle, get_google
+from src.auth.utils.tokens import TokenUtils, get_token
 from src.core.db.repositories.login_history import (
     LoginHistoryRepository,
     get_login_history_repository,
@@ -26,7 +27,6 @@ from src.core.db.repositories.social_account import (
     get_social_account,
 )
 from src.core.db.repositories.user import UserRepository, get_user_repository
-from src.core.oauth_clients.google import OauthGoogle, get_google
 
 auth_dep = AuthJWTBearer()
 
@@ -40,7 +40,7 @@ class OAuth2Service:
         history_repository: LoginHistoryRepository,
         social_account_repository: SocialAccountRepository,
         authorize: AuthJWT,
-        token: Token,
+        token: TokenUtils,
     ):
         self._cache = cache
         self._oauth_client = oauth_client
@@ -144,7 +144,7 @@ def get_oauth2_service(
         get_social_account
     ),
     authorize: AuthJWT = Depends(auth_dep),
-    token: Token = Depends(get_token),
+    token: TokenUtils = Depends(get_token),
 ) -> OAuth2Service:
     return OAuth2Service(
         cache,
