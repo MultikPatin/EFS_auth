@@ -7,6 +7,8 @@ from pydantic_settings import SettingsConfigDict
 
 from src.auth.core.logger import LOGGING
 from src.core.configs.base import ProjectSettings
+from src.core.configs.google import GoogleSettings
+from src.core.configs.loader import LoaderSettings, get_JSON_config
 from src.core.configs.postgres import PostgresAuthSettings
 from src.core.configs.redis import RedisAuthSettings
 
@@ -22,7 +24,10 @@ class Settings(ProjectSettings):
         extra="ignore",
     )
     postgres: PostgresAuthSettings = PostgresAuthSettings()
+
     redis: RedisAuthSettings = RedisAuthSettings()
+
+    loader: LoaderSettings = LoaderSettings()
 
     name: str = Field(..., alias="AUTH_PROJECT_NAME")
     description: str = Field(..., alias="AUTH_PROJECT_DESCRIPTION")
@@ -43,6 +48,7 @@ class Settings(ProjectSettings):
     user_max_sessions: int = Field(..., alias="AUTH_USER_MAX_SESSIONS")
 
     authjwt_secret_key: str = Field(..., alias="AUTH_AUTHJWT_SECRET_KEY")
+    authjwt_algorithm: str = Field(..., alias="AUTH_AUTHJWT_ALGORITHM")
     authjwt_token_location: set = {"cookies"}
     authjwt_cookie_csrf_protect: bool = (
         Field(..., alias="AUTH_AUTHJWT_COOKIE_CSRF_PROTECT") == "True"
@@ -50,6 +56,9 @@ class Settings(ProjectSettings):
     authjwt_cookie_secure: bool = (
         Field(..., alias="AUTH_AUTHJWT_COOKIE_SECURE") == "True"
     )
+
+    google: GoogleSettings = GoogleSettings()
+    google_config: dict = get_JSON_config(loader.google_url)
 
 
 settings = Settings()

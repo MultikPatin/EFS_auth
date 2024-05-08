@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from src.core.db.entities import Entity
 
 if TYPE_CHECKING:
-    from src.core.db.entities import LoginHistory, Role
+    from src.core.db.entities import LoginHistory, Role, SocialAccount
 
 
 class User(Entity):
@@ -32,6 +32,11 @@ class User(Entity):
         "LoginHistory",
         back_populates="user",
         order_by="LoginHistory.created_at.desc()",
+    )
+    social_accounts: Mapped[list["SocialAccount"] | None] = relationship(
+        "SocialAccount",
+        back_populates="user",
+        order_by="SocialAccount.social_name.desc()",
     )
 
     def __init__(

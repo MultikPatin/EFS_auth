@@ -1,29 +1,25 @@
-from typing import Any
+from http import HTTPStatus
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from jwt import (
     ExpiredSignatureError,
     InvalidSignatureError,
     decode,
-    get_unverified_header,
 )
 
 from src.auth.core.config import settings
 
 
-def validate_token(token) -> Any:
-    header_data = get_unverified_header(token)
+def validate_token(token) -> dict[str, str] | None:
     try:
         raw_jwt = decode(
             token,
             key=settings.authjwt_secret_key,
-            algorithms=[
-                header_data["alg"],
-            ],
+            algorithms=settings.authjwt_algorithm,
         )
     except (InvalidSignatureError, ExpiredSignatureError) as e:
         raise HTTPException(
-            status_code=status.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             detail=f"{e}: invalid token",
         ) from None
     return raw_jwt
