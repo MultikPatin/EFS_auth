@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.auth.models.api.v1.social_account import RequestSocialAccount
-from src.core.db.clients.postgres import PostgresDatabase, get_postgres_db
+from src.core.db.clients.postgres import PostgresDatabase, get_postgres_auth_db
 from src.core.db.entities import SocialAccount
 from src.core.db.repositories.base import (
     InitRepository,
@@ -40,6 +40,6 @@ class SocialAccountRepository(InitRepository):
 
 @lru_cache
 def get_social_account(
-    database: PostgresDatabase = Depends(get_postgres_db),
+    database: PostgresDatabase = Depends(get_postgres_auth_db),
 ) -> SocialAccountRepository:
     return SocialAccountRepository(database, SocialAccount)

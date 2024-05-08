@@ -1,4 +1,3 @@
-from typing import Any
 from http import HTTPStatus
 
 from fastapi import HTTPException
@@ -15,8 +14,8 @@ def validate_token(token) -> dict[str, str] | None:
     try:
         raw_jwt = decode(
             token,
-            key=settings.auth_jwt.authjwt_secret_key,
-            algorithms=settings.auth_jwt.authjwt_algorithm,
+            key=settings.authjwt_secret_key,
+            algorithms=settings.authjwt_algorithm,
         )
     except (InvalidSignatureError, ExpiredSignatureError) as e:
         raise HTTPException(
