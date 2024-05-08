@@ -15,6 +15,26 @@ CREATE TABLE IF NOT EXISTS content.film_work
 CREATE INDEX IF NOT EXISTS creation_date
     ON content.film_work (creation_date);
 
+CREATE TABLE IF NOT EXISTS content.permission
+(
+    id            uuid PRIMARY KEY,
+    name          TEXT NOT NULL unique,
+    description   TEXT,
+    created       timestamp with time zone,
+    modified      timestamp with time zone
+);
+
+CREATE TABLE IF NOT EXISTS content.permission_film_work
+(
+    id              uuid PRIMARY KEY,
+    film_work_id    uuid NOT NULL REFERENCES content.film_work (id) ON DELETE CASCADE,
+    permission_id   uuid NOT NULL REFERENCES content.permission (id) ON DELETE CASCADE,
+    created         timestamp with time zone
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS film_work_permission
+    ON content.permission_film_work (film_work_id, permission_id);
+
 CREATE TABLE IF NOT EXISTS content.genre
 (
     id          uuid PRIMARY KEY,
