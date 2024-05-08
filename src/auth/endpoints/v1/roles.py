@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.auth.models.api.base import StringRepresent
 from src.auth.models.api.v1.role_pemission import (
@@ -13,7 +13,12 @@ from src.auth.models.api.v1.roles import (
     ResponseRoleExtended,
     ResponseRoleShort,
 )
-from src.auth.services.current_user import CurrentUserService, get_current_user
+from src.auth.services.current_user import (
+    CurrentUserService,
+    JWTBearer,
+    get_current_user,
+    security_jwt,
+)
 from src.auth.services.role import RoleService, get_role_service
 from src.auth.services.role_pemission import (
     RolePermissionService,
@@ -43,8 +48,8 @@ router = APIRouter()
     summary="Get a list of roles",
 )
 async def get_roles(
-    request: Request,
     roles_service: RoleService = Depends(get_role_service),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> list[ResponseRoleShort]:
     """Only available to administrator
@@ -54,7 +59,7 @@ async def get_roles(
     Returns:
     - **list[ResponseRoleShort]**: The list of roles
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     roles = await roles_service.get_all()
     if not roles:
         raise HTTPException(
@@ -76,9 +81,9 @@ async def get_roles(
     summary="Get a role details by uuid",
 )
 async def get_role(
-    request: Request,
     role_uuid: role_uuid_annotation,
     roles_service: RoleService = Depends(get_role_service),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> ResponseRole:
     """Only available to administrator
@@ -91,7 +96,7 @@ async def get_role(
     Returns:
     - **ResponseRole**: The role details
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     role = await roles_service.get(role_uuid)
     if not role:
         raise HTTPException(
@@ -107,10 +112,10 @@ async def get_role(
     summary="Create a role",
 )
 async def create_role(
-    request: Request,
     body: RequestRoleCreate,
     roles_service: RoleService = Depends(get_role_service),
     role_validator: RoleValidator = Depends(get_role_validator),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> ResponseRole:
     """Only available to administrator
@@ -120,7 +125,7 @@ async def create_role(
     Returns:
     - **ResponseRole**: The role details
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     await role_validator.is_duplicate_name(body.name)
     role = await roles_service.create(body)
     return role
@@ -133,11 +138,11 @@ async def create_role(
     summary="Change the role by uuid",
 )
 async def update_role(
-    request: Request,
     role_uuid: role_uuid_annotation,
     body: RequestRoleUpdate,
     roles_service: RoleService = Depends(get_role_service),
     role_validator: RoleValidator = Depends(get_role_validator),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> ResponseRole:
     """Only available to administrator
@@ -150,7 +155,7 @@ async def update_role(
     Returns:
     - **ResponseRole**: The role details
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     role = await roles_service.update(
         await role_validator.is_exists(role_uuid), body
     )
@@ -163,10 +168,10 @@ async def update_role(
     summary="Delete the role by uuid",
 )
 async def remove_role(
-    request: Request,
     role_uuid: role_uuid_annotation,
     roles_service: RoleService = Depends(get_role_service),
     role_validator: RoleValidator = Depends(get_role_validator),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> StringRepresent:
     """Only available to administrator
@@ -179,7 +184,7 @@ async def remove_role(
     Returns:
     - **StringRepresent**: Status code with message "Role deleted successfully"
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     await roles_service.remove(await role_validator.is_exists(role_uuid))
     return StringRepresent(
         code=HTTPStatus.OK, details="Role deleted successfully"
@@ -192,11 +197,11 @@ async def remove_role(
     summary="Get all permission for role",
 )
 async def give_permissions_for_role(
-    request: Request,
     role_uuid: role_uuid_annotation,
     role_permission_service: RolePermissionService = Depends(
         get_role_permission_service
     ),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> ResponseRoleExtended:
     """Available to authorized users
@@ -209,7 +214,7 @@ async def give_permissions_for_role(
     Returns:
     - **ResponseRoleExtended**: The role details with permissions
     """
-    await current_user.get_me(request)
+    await current_user.get_me(user.get("user_uuid"))
     role = await role_permission_service.get_permissions_for_role(role_uuid)
     if not role:
         raise HTTPException(
@@ -224,7 +229,6 @@ async def give_permissions_for_role(
     summary="Add permission for role",
 )
 async def add_permission_to_role(
-    request: Request,
     role_uuid: role_uuid_annotation,
     permission_uuid: permission_uuid_annotation,
     role_permission_service: RolePermissionService = Depends(
@@ -237,6 +241,7 @@ async def add_permission_to_role(
     role_permission_validator: RolePermissionValidator = Depends(
         get_role_permission_validator
     ),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> ResponseRoleExtended:
     """Only available to administrator
@@ -250,7 +255,7 @@ async def add_permission_to_role(
     Returns:
     - **ResponseRoleExtended**: The role details
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     role_uuid = await role_validator.is_exists(role_uuid)
     permission_uuid = await permission_validator.is_exists(permission_uuid)
     body = RequestRolePermissionShortCreate(
@@ -270,7 +275,6 @@ async def add_permission_to_role(
     summary="Delete permission for role",
 )
 async def remove_permission_from_role(
-    request: Request,
     role_uuid: role_uuid_annotation,
     permission_uuid: permission_uuid_annotation,
     role_permission_service: RolePermissionService = Depends(
@@ -280,6 +284,7 @@ async def remove_permission_from_role(
     permission_validator: PermissionValidator = Depends(
         get_permission_validator
     ),
+    user: JWTBearer = Depends(security_jwt),
     current_user: CurrentUserService = Depends(get_current_user),
 ) -> StringRepresent:
     """Only available to administrator
@@ -293,7 +298,7 @@ async def remove_permission_from_role(
     Returns:
     - **StringRepresent**: Status code with message "Permission for role deleted successfully"
     """
-    await current_user.is_superuser(request)
+    await current_user.is_superuser(user.get("user_uuid"))
     role_uuid = await role_validator.is_exists(role_uuid)
     permission_uuid = await permission_validator.is_exists(permission_uuid)
     await role_permission_service.remove_permission_for_role(
