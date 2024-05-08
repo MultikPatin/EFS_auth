@@ -9,7 +9,7 @@ load_dotenv(".env")
 
 
 class LoaderSettings(BaseSettings):
-    google_url: str = Field(..., alias="GOOGLE_CONFIG_URL")
+    google_url: str = Field(..., alias="AUTH_GOOGLE_CONFIG_URL")
 
 
 def download_file(url: str) -> str:

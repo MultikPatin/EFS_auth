@@ -6,9 +6,9 @@ from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from fastapi import Depends
 
+from src.auth.cache.redis import RedisCache, get_redis
 from src.auth.core.config import settings
 from src.auth.models.db.token import CacheTokens, UserClaims
-from src.core.cache.redis import RedisCache, get_redis
 from src.core.db.repositories.login_history import (
     LoginHistoryRepository,
     get_login_history_repository,

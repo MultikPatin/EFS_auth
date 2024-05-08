@@ -48,6 +48,7 @@ class Settings(ProjectSettings):
     user_max_sessions: int = Field(..., alias="AUTH_USER_MAX_SESSIONS")
 
     authjwt_secret_key: str = Field(..., alias="AUTH_AUTHJWT_SECRET_KEY")
+    authjwt_algorithm: str = Field(..., alias="AUTH_AUTHJWT_ALGORITHM")
     authjwt_token_location: set = {"cookies"}
     authjwt_cookie_csrf_protect: bool = (
         Field(..., alias="AUTH_AUTHJWT_COOKIE_CSRF_PROTECT") == "True"
@@ -56,11 +57,8 @@ class Settings(ProjectSettings):
         Field(..., alias="AUTH_AUTHJWT_COOKIE_SECURE") == "True"
     )
 
-    loader: LoaderSettings = LoaderSettings()
-
     google: GoogleSettings = GoogleSettings()
     google_config: dict = get_JSON_config(loader.google_url)
-
 
 
 settings = Settings()

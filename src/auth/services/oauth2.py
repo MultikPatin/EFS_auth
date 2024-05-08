@@ -9,6 +9,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import Response
 from werkzeug.security import generate_password_hash
 
+from src.auth.cache.redis import RedisCache, get_redis
 from src.auth.core.config import settings
 from src.auth.models.api.v1.login_history import RequestLoginHistory
 from src.auth.models.api.v1.social_account import RequestSocialAccount
@@ -16,7 +17,6 @@ from src.auth.models.api.v1.users import RequestUserCreate
 from src.auth.models.db.token import UserClaims
 from src.auth.models.db.user import UserDB
 from src.auth.utils.tokens import Token, get_token
-from src.core.cache.redis import RedisCache, get_redis
 from src.core.db.repositories.login_history import (
     LoginHistoryRepository,
     get_login_history_repository,
