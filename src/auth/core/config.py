@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from pydantic import Field, SecretStr
 from pydantic_settings import SettingsConfigDict
 
+from src.auth.configs.google import GoogleSettings
+from src.auth.configs.loader import LoaderSettings
 from src.auth.core.logger import LOGGING
 from src.core.configs.base import ProjectSettings
-from src.core.configs.google import GoogleSettings
-from src.core.configs.loader import LoaderSettings, get_JSON_config
 from src.core.configs.postgres import PostgresAuthSettings
 from src.core.configs.redis import RedisAuthSettings
 
@@ -58,7 +58,7 @@ class Settings(ProjectSettings):
     )
 
     google: GoogleSettings = GoogleSettings()
-    google_config: dict = get_JSON_config(loader.google_url)
+    google_config: dict = loader.get_JSON_config(loader.google_url)
 
 
 settings = Settings()

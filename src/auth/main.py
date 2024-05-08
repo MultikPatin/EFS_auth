@@ -28,10 +28,10 @@ from src.auth.endpoints.v1 import (
     users,
     users_additional,
 )
+from src.auth.oauth_clients import google
 from src.auth.utils.startup import StartUpService
 from src.core.configs.postgres import PostgresAuthSettings
 from src.core.db.clients.postgres import PostgresDatabase
-from src.core.oauth_clients import google
 from src.core.utils.logger import create_logger
 
 

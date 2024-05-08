@@ -16,6 +16,7 @@ from src.auth.models.api.v1.social_account import RequestSocialAccount
 from src.auth.models.api.v1.users import RequestUserCreate
 from src.auth.models.db.token import UserClaims
 from src.auth.models.db.user import UserDB
+from src.auth.oauth_clients.google import OauthGoogle, get_google
 from src.auth.utils.tokens import TokenUtils, get_token
 from src.core.db.repositories.login_history import (
     LoginHistoryRepository,
@@ -26,7 +27,6 @@ from src.core.db.repositories.social_account import (
     get_social_account,
 )
 from src.core.db.repositories.user import UserRepository, get_user_repository
-from src.core.oauth_clients.google import OauthGoogle, get_google
 
 auth_dep = AuthJWTBearer()
 

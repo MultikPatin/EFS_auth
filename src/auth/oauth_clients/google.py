@@ -5,7 +5,7 @@ from authlib.jose import JWTClaims, jwt
 from authlib.oidc.core import CodeIDToken
 
 from src.auth.core.config import settings
-from src.core.oauth_clients.abstract import AbstractModelOauthClient
+from src.auth.oauth_clients.abstract import AbstractModelOauthClient
 
 
 class OauthGoogle(AbstractModelOauthClient):
