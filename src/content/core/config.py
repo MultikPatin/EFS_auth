@@ -24,7 +24,13 @@ class Settings(ProjectSettings):
     name: str = Field(..., alias="CONTENT_PROJECT_NAME")
     description: str = Field(..., alias="CONTENT_PROJECT_DESCRIPTION")
     host: str = Field(..., alias="CONTENT_API_HOST")
+    host_local: str = Field(..., alias="CONTENT_API_HOST_LOCAL")
     port: int = Field(..., alias="CONTENT_API_PORT")
+    port_local: int = Field(..., alias="CONTENT_API_PORT_LOCAL")
+    auth_host: str = Field(..., alias="AUTH_API_HOST")
+    auth_port: int = Field(..., alias="AUTH_API_PORT")
+    auth_host_local: str = Field(..., alias="AUTH_API_HOST_LOCAL")
+    auth_port_local: int = Field(..., alias="AUTH_API_PORT_LOCAL")
     docs_url: str = Field(..., alias="CONTENT_API_DOCS_URL")
     openapi_url: str = Field(..., alias="CONTENT_API_OPENAPI_URL")
 
@@ -39,6 +45,12 @@ class Settings(ProjectSettings):
     )
     authjwt_secret_key: str = Field(..., alias="AUTH_AUTHJWT_SECRET_KEY")
     authjwt_algorithm: str = Field(..., alias="AUTH_AUTHJWT_ALGORITHM")
+
+    def get_api_roles_url(self) -> str:
+        rout = "/auth/v1/roles/"
+        if self.local:
+            return f"http://{self.auth_host_local}:{self.auth_port_local}{rout}"
+        return f"http://{self.auth_host}:{self.auth_port}{rout}"
 
 
 settings = Settings()
