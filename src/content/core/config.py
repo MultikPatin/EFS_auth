@@ -37,6 +37,8 @@ class Settings(ProjectSettings):
     cache_ex_for_persons: int = Field(
         ..., alias="CONTENT_API_CACHE_EXPIRE_FOR_PERSON_SERVICE"
     )
+    authjwt_secret_key: str = Field(..., alias="AUTH_AUTHJWT_SECRET_KEY")
+    authjwt_algorithm: str = Field(..., alias="AUTH_AUTHJWT_ALGORITHM")
 
 
 settings = Settings()
