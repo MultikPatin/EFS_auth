@@ -50,6 +50,7 @@ class FilmWork(TimeStampedMixin, UUIDMixin, DescriptionMixin):
     )
     genres = models.ManyToManyField("Genre", through="GenreFilmWork")
     persons = models.ManyToManyField("Person", through="PersonFilmWork")
+
     # permissions = models.ManyToManyField(
     #     "Permission", through="PermissionFilmWork"
     # )

@@ -20,6 +20,8 @@ class CustomBackend(BaseBackend):
         if response.status_code != http.HTTPStatus.OK:
             return None
         data = response.json()
+        if not data["is_superuser"]:
+            return None
         print(data)
         try:
             user, created = User.objects.get_or_create(id=data["uuid"])

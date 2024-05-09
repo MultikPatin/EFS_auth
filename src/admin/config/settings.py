@@ -52,9 +52,10 @@ class AdvancedSettings(ServiceSettings):
 
     @property
     def get_api_login_url(self) -> str:
+        rout = "/auth/v1/tokens/login/"
         if self.local:
-            return f"http://{self.auth_host_local}:{self.auth_port_local}"
-        return f"http://{self.auth_host}:{self.auth_port}"
+            return f"http://{self.auth_host_local}:{self.auth_port_local}{rout}"
+        return f"http://{self.auth_host}:{self.auth_port}{rout}"
 
 
 ADVANCED_SETTINGS = AdvancedSettings()
@@ -106,6 +107,6 @@ AUTH_USER_MODEL = "users.User"
 
 AUTH_API_LOGIN_URL = ADVANCED_SETTINGS.get_api_login_url
 
-# AUTHENTICATION_BACKENDS = [
-#     "users.auth.CustomBackend",
-# ]
+AUTHENTICATION_BACKENDS = [
+    "users.auth.CustomBackend",
+]
