@@ -5,6 +5,7 @@ from fastapi import Depends
 from src.content.cache.redis import RedisCache, get_redis
 from src.content.core.config import settings
 from src.content.db.elastic import ElasticDB, get_elastic
+from src.content.models.api.v1.role import ResponsePermission
 from src.content.models.db.film import FilmDB
 from src.content.services.base import BaseElasticService
 
@@ -13,7 +14,9 @@ class FilmService(BaseElasticService[FilmDB]):
     _key_prefix = "FilmService"
     _index = "movies"
 
-    async def get_by_id(self, film_id: str) -> FilmDB | None:
+    async def get_by_id(
+        self, film_id: str, permissions: list[ResponsePermission]
+    ) -> FilmDB | None:
         return await self._get_by_id(
             obj_id=film_id,
             model=FilmDB,

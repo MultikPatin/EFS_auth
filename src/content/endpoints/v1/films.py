@@ -5,6 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from src.content.models.api.v1.film import Film, FilmForFilmsList
+from src.content.services.current_user import (
+    CurrentUserService,
+    JWTBearer,
+    get_current_user,
+    security_jwt,
+)
 from src.content.services.film import FilmService, get_film_service
 from src.content.validators.films import FilmFieldsToSort
 from src.content.validators.pagination import (
@@ -28,6 +34,8 @@ async def film_details(
         ),
     ],
     film_service: FilmService = Depends(get_film_service),
+    role_uuid: JWTBearer = Depends(security_jwt),
+    current_user: CurrentUserService = Depends(get_current_user),
 ) -> Film:
     """
     Get film details by id
@@ -41,7 +49,9 @@ async def film_details(
     Raises:
         HTTPException: If the film does not exist
     """
-    film = await film_service.get_by_id(film_uuid)
+    permissions = await current_user.get_permissions(role_uuid)
+    print(f"\n\n\n\n User permissions:\n{permissions} \n\n\n\n")
+    film = await film_service.get_by_id(film_uuid, permissions)
     if not film:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="film not found"
