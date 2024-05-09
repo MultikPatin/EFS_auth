@@ -36,7 +36,6 @@ class AdvancedSettings(ServiceSettings):
     auth_port: int = Field(..., alias="AUTH_API_PORT")
     auth_host_local: str = Field(..., alias="AUTH_API_HOST_LOCAL")
     auth_port_local: int = Field(..., alias="AUTH_API_PORT_LOCAL")
-    # superuser_name: str = Field(default=..., alias="ADMIN_SUPERUSER_USERNAME")
     superuser_password: SecretStr = Field(
         default=..., alias="ADMIN_SUPERUSER_PASSWORD"
     )

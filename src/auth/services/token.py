@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException, Request
 from src.auth.cache.redis import RedisCache, get_redis
 from src.auth.models.api.v1.login_history import RequestLoginHistory
 from src.auth.models.api.v1.tokens import RequestLogin
+from src.auth.models.api.v1.users import ResponseUser
 from src.auth.models.db.token import UserClaims
 from src.auth.utils.tokens import TokenUtils, get_token
 from src.auth.validators.token import validate_token
@@ -35,7 +36,7 @@ class TokenService:
         self._authorize = authorize
         self._token = token
 
-    async def login(self, body: RequestLogin, request: Request):
+    async def login(self, body: RequestLogin, request: Request) -> ResponseUser:
         user = await self._user_repository.get_by_email(body.email)
         if not user:
             raise HTTPException(
@@ -63,6 +64,8 @@ class TokenService:
                 user_agent=request.headers.get("User-Agent"),
             )
         )
+        model = ResponseUser.model_validate(user, from_attributes=True)
+        return model
 
     async def logout(self, request: Request, for_all_sessions: bool):
         refresh_token = request.cookies.get("refresh_token_cookie")

@@ -12,34 +12,22 @@ User = get_user_model()
 class CustomBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
         url = settings.AUTH_API_LOGIN_URL
-        print(url)
         payload = {"email": username, "password": password}
         response = requests.post(url, data=json.dumps(payload))
-        print(response.status_code)
-        print(response.json())
         if response.status_code != http.HTTPStatus.OK:
             return None
         data = response.json()
         if not data["is_superuser"]:
             return None
-        print(data)
         try:
             user, created = User.objects.get_or_create(id=data["uuid"])
-            print(user, created)
-            # user.email = data.get("email")
-            # print(user.email)
-            # user.first_name = data.get("first_name")
-            # print(user.first_name)
-            # user.last_name = data.get("last_name")
-            # print(user.first_name)
-            # print(user.last_name)
-            # user.role_uuid = data.get("role_uuid")
-            # print(user.role_uuid)
-            # user.is_superuser = data.get("is_superuser")
-            # print(user.is_superuser)
-            # user.is_stuff = data.get("is_superuser")
-            # print(user.is_stuff)
-            # user.save()
+            if created:
+                user.email = data.get("email")
+                user.set_password(payload["password"])
+                user.first_name = data.get("first_name")
+                user.last_name = data.get("last_name")
+                user.is_staff = data.get("is_superuser")
+                user.save()
         except Exception as e:
             print(f"==> {e}")
             return None
