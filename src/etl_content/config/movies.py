@@ -43,6 +43,15 @@ _ELASTIC_MAPPING = {
                 "full_name": {"type": "text", "analyzer": "ru_en"},
             },
         },
+        "permissions": {
+            "type": "nested",
+            "dynamic": "strict",
+            "properties": {
+                "uuid": {"type": "keyword"},
+                "name": {"type": "text", "analyzer": "ru_en"},
+                "description": {"type": "text", "analyzer": "ru_en"},
+            },
+        },
     },
 }
 
@@ -90,9 +99,19 @@ SQL_QUERY = """
                             ) #>> '{{}}' END, ','
                     ), ']'
                 ) AS writers,
+            concat(
+                '[', string_agg(
+                    DISTINCT CASE WHEN
+                        pfm.permission_id IS NOT NULL THEN json_build_object(
+                            'uuid', pm.id, 'name', pm.name, 'description', pm.description
+                            ) #>> '{{}}' END, ','
+                    ), ']'
+                ) AS permissions,
             GREATEST(MAX(fw.modified), MAX(g.modified), MAX(p.modified)) AS last_modified
         FROM
             content.film_work as fw
+            LEFT JOIN content.permission_film_work pfm ON fw.id = pfm.film_work_id
+            LEFT JOIN content.permission pm ON pfm.permission_id = pm.id
             LEFT JOIN content.genre_film_work gfm ON fw.id = gfm.film_work_id
             LEFT JOIN content.genre g ON gfm.genre_id = g.id
             LEFT JOIN content.person_film_work pfw ON fw.id = pfw.film_work_id

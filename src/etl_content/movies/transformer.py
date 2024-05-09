@@ -29,6 +29,9 @@ class Transformer(BaseTransformer):
                 "writers": json.loads(row["writers"])
                 if row["writers"] is not None
                 else [],
+                "permissions": json.loads(row["permissions"])
+                if row["permissions"] is not None
+                else [],
             }
             transformed_part.append(filmwork)
         return transformed_part
