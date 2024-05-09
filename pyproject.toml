@@ -84,6 +84,7 @@ movies = [
     "fastapi",
     "gunicorn",
     "uvicorn",
+    "pyjwt",
 ]
 etl_content = [
     "backoff",
