@@ -11,11 +11,13 @@ class PostgresExtractor:
     def __init__(
         self,
         connection: _connection,
+        stmt: str,
         buffer_size: int,
         logger: Logger,
     ) -> None:
         self.__connection = connection
         self.__buffer_size = buffer_size
+        self.__stmt = stmt
         self.__logger = logger
 
     def extract(self, extract_timestamp: str) -> Iterator:

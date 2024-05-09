@@ -1,6 +1,5 @@
 import logging
 import time
-from datetime import datetime
 
 import backoff
 import psycopg2
@@ -29,8 +28,9 @@ def etl(
 
     for extracted_part in extractor.extract(str(last_sync_timestamp)):
         data = transformer.transform(extracted_part)
-        loader.load(data)
-        state.set_state("last_sync_timestamp", str(datetime.utcnow()))
+        print(data)
+        # loader.load(data)
+        # state.set_state("last_sync_timestamp", str(datetime.utcnow()))
 
 
 if __name__ == "__main__":
@@ -48,11 +48,13 @@ if __name__ == "__main__":
         extractor = PostgresExtractor(
             connection=pg_auth_conn,
             buffer_size=settings.buffer_size,
+            stmt=settings.extractor_stmt,
             logger=create_logger("ETL permissions PostgresExtractor"),
         )
         transformer = BaseTransformer()
         loader = PostgresLoader(
             connection=pg_content_conn,
+            stmt=settings.load_stmt,
             logger=create_logger("ETL permissions PostgresLoader"),
         )
 
