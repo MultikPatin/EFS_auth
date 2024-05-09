@@ -158,6 +158,7 @@ exclude = [
     "*/migrations/",
     "*/config/components/",
     "tasks",
+    "entrypoint.sh",
 ]
 per-file-ignores = { }
 

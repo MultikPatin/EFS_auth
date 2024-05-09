@@ -1,12 +1,12 @@
 import uuid
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
 from .managers import MyUserManager
 
 
-class User(AbstractUser):
+class User(AbstractBaseUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(
         max_length=64,
@@ -28,8 +28,7 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    is_superuser = models.BooleanField()
-    role_uuid = models.UUIDField()
+    is_staff = models.BooleanField(default=False)
 
     class Meta:
         db_table = "users"

@@ -12,15 +12,18 @@ User = get_user_model()
 class CustomBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
         url = settings.AUTH_API_LOGIN_URL
+        print(url)
         payload = {"email": username, "password": password}
         response = requests.post(url, data=json.dumps(payload))
         print(response.status_code)
+        print(response.json())
         if response.status_code != http.HTTPStatus.OK:
             return None
         data = response.json()
+        print(data)
         try:
             user, created = User.objects.get_or_create(id=data["uuid"])
-            print(user)
+            print(user, created)
             # user.email = data.get("email")
             # print(user.email)
             # user.first_name = data.get("first_name")
