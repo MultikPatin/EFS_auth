@@ -1,4 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS content;
+CREATE SCHEMA IF NOT EXISTS access;
 
 CREATE TABLE IF NOT EXISTS content.film_work
 (
@@ -15,7 +16,7 @@ CREATE TABLE IF NOT EXISTS content.film_work
 CREATE INDEX IF NOT EXISTS creation_date
     ON content.film_work (creation_date);
 
-CREATE TABLE IF NOT EXISTS content.permission
+CREATE TABLE IF NOT EXISTS access.permission
 (
     id            uuid PRIMARY KEY,
     name          TEXT NOT NULL unique,
@@ -24,16 +25,16 @@ CREATE TABLE IF NOT EXISTS content.permission
     modified      timestamp with time zone
 );
 
-CREATE TABLE IF NOT EXISTS content.permission_film_work
+CREATE TABLE IF NOT EXISTS access.permission_film_work
 (
     id              uuid PRIMARY KEY,
     film_work_id    uuid NOT NULL REFERENCES content.film_work (id) ON DELETE CASCADE,
-    permission_id   uuid NOT NULL REFERENCES content.permission (id) ON DELETE CASCADE,
+    permission_id   uuid NOT NULL REFERENCES access.permission (id) ON DELETE CASCADE,
     created         timestamp with time zone
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS film_work_permission
-    ON content.permission_film_work (film_work_id, permission_id);
+    ON access.permission_film_work (film_work_id, permission_id);
 
 CREATE TABLE IF NOT EXISTS content.genre
 (

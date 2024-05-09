@@ -317,7 +317,7 @@ services:
       postgres_content:
         condition: service_healthy
     ports:
-      - "${ADMIN_API_PORT_OUT}:${ADMIN_API_PORT}"
+      - "${ADMIN_API_PORT_LOCAL}:${ADMIN_API_PORT}"
     networks:
       - services
 
