@@ -90,6 +90,10 @@ etl_content = [
     "elasticsearch",
     "psycopg2-binary",
 ]
+etl_permission = [
+    "backoff",
+    "psycopg2-binary",
+]
 
 [tool.poetry.group.dev]
 optional = true

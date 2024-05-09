@@ -197,6 +197,35 @@ services:
     networks:
       - services
 
+  etl_permission:
+    build:
+      dockerfile: src/etl_permission/Dockerfile
+    environment:
+      - LOCAL=False
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_PERMISSION_BUFFERED_ROWS=${ETL_PERMISSION_BUFFERED_ROWS}
+      - ETL_PERMISSION_SLEEP_TIME=${ETL_PERMISSION_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      postgres_auth:
+        condition: service_healthy
+    networks:
+      - services
+
   service_content:
     build:
       dockerfile: src/content/Dockerfile
@@ -315,6 +344,10 @@ services:
       - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY}
       - AUTH_API_HOST=${AUTH_API_HOST}
       - AUTH_API_PORT=${AUTH_API_PORT}
+      - AUTH_API_HOST_LOCAL=${AUTH_API_HOST_LOCAL}
+      - AUTH_API_PORT_LOCAL=${AUTH_API_PORT_LOCAL}
+      - ADMIN_SUPERUSER_PASSWORD=${ADMIN_SUPERUSER_PASSWORD}
+      - ADMIN_SUPERUSER_EMAIL=${ADMIN_SUPERUSER_EMAIL}
     volumes:
       - static:/backend_static
     depends_on:

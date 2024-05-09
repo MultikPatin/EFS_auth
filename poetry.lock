@@ -2396,6 +2396,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 admin = ["django", "django-debug-toolbar", "django-split-settings", "gunicorn", "psycopg2-binary", "uwsgi"]
 auth = ["async-fastapi-jwt-auth", "asyncpg", "authlib", "fastapi", "gunicorn", "itsdangerous", "orjson", "redis", "sqlalchemy", "uvicorn", "werkzeug"]
 etl-content = ["backoff", "elasticsearch", "psycopg2-binary"]
+etl-permission = ["backoff", "psycopg2-binary"]
 migrations = ["alembic", "asyncpg", "sqlalchemy", "werkzeug"]
 movies = ["elasticsearch", "fastapi", "gunicorn", "redis", "uvicorn"]
 telemetry = ["opentelemetry-api", "opentelemetry-exporter-jaeger", "opentelemetry-instrumentation-fastapi", "opentelemetry-sdk"]
@@ -2404,4 +2405,4 @@ test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "w
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "901cd69d2e2aac6901a0c186740d0705667982c9bc1d62e36665d5d7fbb9b7e0"
+content-hash = "9cc9c90c19cf2eb8e867e0fb1ed9211a98d9068e692613b01951fe3c4d362d43"
