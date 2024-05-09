@@ -1,7 +1,18 @@
 from collections.abc import Iterator
+from dataclasses import dataclass
+from datetime import datetime
 from logging import Logger
 
 from psycopg2.extensions import connection as _connection
+
+
+@dataclass(frozen=True)
+class Permission:
+    id: str
+    name: str
+    description: str
+    created: datetime
+    modified: datetime
 
 
 class PostgresExtractor:
@@ -32,10 +43,20 @@ class PostgresExtractor:
         while True:
             rows = self.__cursor.fetchmany(self.__buffer_size)
             if rows:
+                transformed_part = []
+                for row in rows:
+                    permission = Permission(
+                        id=row["uuid"],
+                        name=row["name"],
+                        description=row["description"],
+                        created=row["created_at"],
+                        modified=row["updated_at"],
+                    )
+                    transformed_part.append(permission)
                 self.__logger.info(
                     "Extracted %s rows for permission", len(rows)
                 )
-                yield rows
+                yield transformed_part
             else:
                 self.__logger.info("No changes found for permission")
                 self.__cursor.close()

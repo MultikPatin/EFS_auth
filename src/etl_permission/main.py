@@ -1,5 +1,6 @@
 import logging
 import time
+from datetime import datetime
 
 import backoff
 import psycopg2
@@ -9,7 +10,6 @@ from src.etl_permission.config.base import settings
 from src.etl_permission.helpers.extractor import PostgresExtractor
 from src.etl_permission.helpers.loader import PostgresLoader
 from src.etl_permission.helpers.state import JsonFileStorage, State
-from src.etl_permission.helpers.transformer import BaseTransformer
 
 
 @backoff.on_exception(wait_gen=backoff.expo, exception=ConnectionError)
@@ -19,18 +19,15 @@ from src.etl_permission.helpers.transformer import BaseTransformer
 def etl(
     logger: logging.Logger,
     extractor: PostgresExtractor,
-    transformer: BaseTransformer,
     state: State,
     loader: PostgresLoader,
 ) -> None:
     last_sync_timestamp = state.get_state("last_sync_timestamp")
     logger.info("The last sync was %s", last_sync_timestamp)
 
-    for extracted_part in extractor.extract(str(last_sync_timestamp)):
-        data = transformer.transform(extracted_part)
-        print(data)
-        # loader.load(data)
-        # state.set_state("last_sync_timestamp", str(datetime.utcnow()))
+    row_generator = extractor.extract(str(last_sync_timestamp))
+    loader.save_table(row_generator, settings.permission_fields)
+    state.set_state("last_sync_timestamp", str(datetime.utcnow()))
 
 
 if __name__ == "__main__":
@@ -51,7 +48,6 @@ if __name__ == "__main__":
             stmt=settings.extractor_stmt,
             logger=create_logger("ETL permissions PostgresExtractor"),
         )
-        transformer = BaseTransformer()
         loader = PostgresLoader(
             connection=pg_content_conn,
             stmt=settings.load_stmt,
@@ -59,6 +55,6 @@ if __name__ == "__main__":
         )
 
         while True:
-            etl(logger, extractor, transformer, state, loader)
+            etl(logger, extractor, state, loader)
             logger.info("Pause for %s seconds", settings.sleep_time)
             time.sleep(settings.sleep_time)
