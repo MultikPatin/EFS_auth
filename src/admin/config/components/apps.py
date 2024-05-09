@@ -7,4 +7,5 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "debug_toolbar",
     "movies.apps.MoviesConfig",
+    "users.apps.UsersConfig",
 ]
