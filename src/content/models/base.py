@@ -1,8 +1,10 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
 class UUIDMixin(BaseModel):
-    uuid: str
+    uuid: str | UUID
 
     class Meta:
         abstract = True
