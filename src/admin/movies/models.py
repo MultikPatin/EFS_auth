@@ -51,6 +51,10 @@ class FilmWork(TimeStampedMixin, UUIDMixin, DescriptionMixin):
     genres = models.ManyToManyField("Genre", through="GenreFilmWork")
     persons = models.ManyToManyField("Person", through="PersonFilmWork")
 
+    # permissions = models.ManyToManyField(
+    #     "Permission", through="PermissionFilmWork"
+    # )
+
     class Meta:
         db_table = 'content"."film_work'
         verbose_name = _("film_work")
@@ -60,6 +64,19 @@ class FilmWork(TimeStampedMixin, UUIDMixin, DescriptionMixin):
 
     def __str__(self):
         return self.title
+
+
+# class PermissionFilmWork(UUIDMixin, CreatedMixin):
+#     film_work = models.ForeignKey("FilmWork", on_delete=models.CASCADE)
+#     permission = models.ForeignKey(
+#         "Permission", on_delete=models.CASCADE, verbose_name="permission"
+#     )
+#
+#     class Meta:
+#         db_table = 'access"."permission_film_work'
+#         verbose_name = "permission_film_work"
+#         verbose_name_plural = "permission_film_works"
+#         unique_together = ("film_work", "permission")
 
 
 class Genre(TimeStampedMixin, UUIDMixin, DescriptionMixin):

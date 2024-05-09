@@ -5,19 +5,20 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from src.auth.models.api.base import StringRepresent
 from src.auth.models.api.v1.tokens import RequestLogin
+from src.auth.models.api.v1.users import ResponseUser
 from src.auth.services.token import TokenService, get_token_service
 
 router = APIRouter()
 
 
 @router.post(
-    "/login/", response_model=StringRepresent, summary="Issuing a JWT token"
+    "/login/", response_model=ResponseUser, summary="Issuing a JWT token"
 )
 async def login(
     request: Request,
     body: RequestLogin,
     token_service: TokenService = Depends(get_token_service),
-) -> StringRepresent:
+) -> ResponseUser:
     """Endpoint to receive JWT
 
     Issuing a JWT token
@@ -25,10 +26,7 @@ async def login(
     Returns:
     - **StringRepresent**: Status code with message "The login was completed successfully"
     """
-    await token_service.login(body, request)
-    return StringRepresent(
-        code=HTTPStatus.OK, details="The login was completed successfully"
-    )
+    return await token_service.login(body, request)
 
 
 @router.post(
