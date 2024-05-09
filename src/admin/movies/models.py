@@ -6,7 +6,14 @@ from django.utils.translation import gettext_lazy as _
 
 
 class DescriptionMixin(models.Model):
-    description = models.TextField(_("description"), blank=True)
+    description = models.TextField(_("description"), blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class NameMixin(models.Model):
+    name = models.CharField(_("name"), max_length=64, unique=True)
 
     class Meta:
         abstract = True
@@ -51,9 +58,9 @@ class FilmWork(TimeStampedMixin, UUIDMixin, DescriptionMixin):
     genres = models.ManyToManyField("Genre", through="GenreFilmWork")
     persons = models.ManyToManyField("Person", through="PersonFilmWork")
 
-    # permissions = models.ManyToManyField(
-    #     "Permission", through="PermissionFilmWork"
-    # )
+    permissions = models.ManyToManyField(
+        "Permission", through="PermissionFilmWork"
+    )
 
     class Meta:
         db_table = 'content"."film_work'
@@ -66,22 +73,31 @@ class FilmWork(TimeStampedMixin, UUIDMixin, DescriptionMixin):
         return self.title
 
 
-# class PermissionFilmWork(UUIDMixin, CreatedMixin):
-#     film_work = models.ForeignKey("FilmWork", on_delete=models.CASCADE)
-#     permission = models.ForeignKey(
-#         "Permission", on_delete=models.CASCADE, verbose_name="permission"
-#     )
-#
-#     class Meta:
-#         db_table = 'access"."permission_film_work'
-#         verbose_name = "permission_film_work"
-#         verbose_name_plural = "permission_film_works"
-#         unique_together = ("film_work", "permission")
+class PermissionFilmWork(UUIDMixin, CreatedMixin):
+    film_work = models.ForeignKey("FilmWork", on_delete=models.CASCADE)
+    permission = models.ForeignKey(
+        "Permission", on_delete=models.CASCADE, verbose_name=_("permission")
+    )
+
+    class Meta:
+        db_table = 'access"."permission_film_work'
+        verbose_name = "permission_film_work"
+        verbose_name_plural = "permission_film_works"
+        unique_together = ("film_work", "permission")
 
 
-class Genre(TimeStampedMixin, UUIDMixin, DescriptionMixin):
-    name = models.CharField(_("name"), max_length=255)
+class Permission(TimeStampedMixin, UUIDMixin, DescriptionMixin, NameMixin):
+    class Meta:
+        db_table = 'access"."permission'
+        verbose_name = "permission"
+        verbose_name_plural = "permissions"
+        ordering = ["name"]
 
+    def __str__(self):
+        return self.name
+
+
+class Genre(TimeStampedMixin, UUIDMixin, DescriptionMixin, NameMixin):
     class Meta:
         db_table = 'content"."genre'
         verbose_name = _("genre")
