@@ -1,17 +1,14 @@
+import json
 from http import HTTPStatus
+from json import JSONDecodeError
 
-# from async_fastapi_jwt_auth import AuthJWT
-# from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
-from fastapi import Depends, HTTPException, Request
+import aiohttp
+from fastapi import HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from src.content.core.config import settings
 from src.content.models.api.v1.role import ResponsePermission, ResponseRole
 from src.content.validators.token import validate_token
-
-# from src.core.db.repositories.user import UserRepository, get_user_repository
-from src.core.db.repositories.role import RoleRepository, get_role_repository
-
-# auth_dep = AuthJWTBearer()
 
 
 class JWTBearer(HTTPBearer):
@@ -56,23 +53,39 @@ security_jwt = JWTBearer()
 class CurrentUserService:
     def __init__(
         self,
-        role_repository: RoleRepository,
-        # authorize: AuthJWT,
-    ):
-        self._role_repository = role_repository
-        # self._authorize = authorize
+    ): ...
+    async def get_permissions(
+        self, role_uuid: str, request: Request
+    ) -> list[ResponsePermission]:
+        url = settings.get_api_roles_url() + f"{role_uuid}/permissions/"
 
-    # async def get_me(self, request: Request) -> ResponseUser:
-    async def get_permissions(self, role_uuid: str) -> list[ResponsePermission]:
-        obj = await self._role_repository.get_with_permissions(role_uuid)
-        if not obj:
+        access_token_cookie = request.cookies.get("access_token_cookie")
+        cookies = {
+            "access_token_cookie": access_token_cookie,
+        }
+        async with aiohttp.ClientSession() as session:
+            session.cookie_jar.update_cookies(cookies)
+            async with session.get(url) as response:
+                body = await response.read()
+            try:
+                body = json.loads(body)
+            except JSONDecodeError as e:
+                raise HTTPException(
+                    status_code=HTTPStatus.NOT_FOUND,
+                    detail=f"{e}: JSON decode error",
+                ) from None
+        permissions = ResponseRole(
+            uuid=body.get("uuid"),
+            name=body.get("name"),
+            permissions=[
+                ResponsePermission(**permission)
+                for permission in body.get("permissions")
+            ],
+        )
+        if not permissions:
             return
-        model = ResponseRole.model_validate(obj, from_attributes=True)
-        return model.permissions
+        return permissions.permissions
 
 
-def get_current_user(
-    role_repository: RoleRepository = Depends(get_role_repository),
-    # authorize: AuthJWT = Depends(auth_dep),
-) -> CurrentUserService:
-    return CurrentUserService(role_repository)
+def get_current_user() -> CurrentUserService:
+    return CurrentUserService()

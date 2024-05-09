@@ -16,23 +16,26 @@ class FilmService(BaseElasticService[FilmDB]):
     _index = "movies"
 
     async def get_by_id(
-        self, film_id: str, permissions: list[ResponsePermission]
+        self, film_id: str, user_permissions: ResponsePermission
     ) -> FilmDB | None:
         film = await self._get_by_id(
             obj_id=film_id,
             model=FilmDB,
         )
-        permissions_set = {permission.uuid for permission in permissions}
-        film_permissions_set = (
-            {permission.get("uuid") for permission in film.permissions}
-            if film.permissions
-            else set()
-        )
-        if not film_permissions_set.issubset(permissions_set):
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN,
-                detail="Not enough permissions to view.",
+        if film and user_permissions:
+            user_permissions_set = {
+                permission.uuid for permission in user_permissions
+            }
+            film_permissions_set = (
+                {permission.get("uuid") for permission in film.permissions}
+                if film.permissions
+                else set()
             )
+            if not film_permissions_set.issubset(user_permissions_set):
+                raise HTTPException(
+                    status_code=HTTPStatus.FORBIDDEN,
+                    detail="Not enough permissions to view.",
+                )
         return film
 
     async def get_films(
@@ -41,7 +44,7 @@ class FilmService(BaseElasticService[FilmDB]):
         page_size: int,
         genre_uuid: str | None,
         sort: str | None,
-        permissions: list[ResponsePermission],
+        user_permissions: ResponsePermission,
     ) -> list[FilmDB] | None:
         key = self._cache.build_key(
             self._key_prefix, page_number, page_size, genre_uuid, sort
@@ -54,22 +57,27 @@ class FilmService(BaseElasticService[FilmDB]):
             if not films:
                 return None
             await self._cache.set_list_model(key, films, self._cache_ex)
-        permissions_set = {permission.uuid for permission in permissions}
-        allowed_films = []
-        async for film in films:
-            film_permissions_set = (
-                {permission.get("uuid") for permission in film.permissions}
-                if film.permissions
-                else set()
-            )
-            if film_permissions_set.issubset(permissions_set):
-                allowed_films.append(film)
-        if not allowed_films:
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN,
-                detail="Not enough permissions to view.",
-            )
-        return allowed_films
+        if user_permissions:
+            user_permissions_set = {
+                permission.uuid for permission in user_permissions
+            }
+            allowed_films = []
+            for film in films:
+                film_permissions_set = (
+                    {permission.get("uuid") for permission in film.permissions}
+                    if film.permissions
+                    else set()
+                )
+                if film_permissions_set.issubset(user_permissions_set):
+                    allowed_films.append(film)
+            if not allowed_films:
+                raise HTTPException(
+                    status_code=HTTPStatus.FORBIDDEN,
+                    detail="Not enough permissions to view.",
+                )
+            return allowed_films
+        else:
+            return films
 
     async def get_search(
         self,
@@ -77,7 +85,7 @@ class FilmService(BaseElasticService[FilmDB]):
         page_size: int,
         search_query: str | None,
         field: str,
-        permissions: list[ResponsePermission],
+        user_permissions: ResponsePermission,
     ) -> list[FilmDB] | None:
         films = await self._get_search(
             page_number=page_number,
@@ -86,22 +94,27 @@ class FilmService(BaseElasticService[FilmDB]):
             field=field,
             model=FilmDB,
         )
-        permissions_set = {permission.uuid for permission in permissions}
-        allowed_films = []
-        async for film in films:
-            film_permissions_set = (
-                {permission.get("uuid") for permission in film.permissions}
-                if film.permissions
-                else set()
-            )
-            if film_permissions_set.issubset(permissions_set):
-                allowed_films.append(film)
-        if not allowed_films:
-            raise HTTPException(
-                status_code=HTTPStatus.FORBIDDEN,
-                detail="Not enough permissions to view.",
-            )
-        return allowed_films
+        if user_permissions and films:
+            user_permissions_set = {
+                permission.uuid for permission in user_permissions
+            }
+            allowed_films = []
+            for film in films:
+                film_permissions_set = (
+                    {permission.get("uuid") for permission in film.permissions}
+                    if film.permissions
+                    else set()
+                )
+                if film_permissions_set.issubset(user_permissions_set):
+                    allowed_films.append(film)
+            if not allowed_films:
+                raise HTTPException(
+                    status_code=HTTPStatus.FORBIDDEN,
+                    detail="Not enough permissions to view.",
+                )
+            return allowed_films
+        else:
+            return films
 
     async def __get_films_from_elastic(
         self,

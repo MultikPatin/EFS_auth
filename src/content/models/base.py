@@ -24,7 +24,6 @@ class FilmFullMixin(FilmMixin):
     directors: list[dict[str, str]] | None
     actors: list[dict[str, str]] | None
     writers: list[dict[str, str]] | None
-    permissions: list[dict[str, str]] | None
 
     class Meta:
         abstract = True
