@@ -8,5 +8,4 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "movies.apps.MoviesConfig",
     "users.apps.UsersConfig",
-    "access.apps.AccessConfig",
 ]
