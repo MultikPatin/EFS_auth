@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from datetime import datetime
+
 from dotenv import load_dotenv
 from pydantic.fields import Field
 from pydantic_settings import BaseSettings
@@ -9,6 +12,15 @@ from src.etl_permission.config.postgres import (
 )
 
 load_dotenv()
+
+
+@dataclass(frozen=True)
+class Permission:
+    id: str
+    name: str
+    description: str
+    created: datetime
+    modified: datetime
 
 
 class Settings(BaseSettings):
@@ -35,18 +47,6 @@ class Settings(BaseSettings):
         GROUP BY p.uuid
         ORDER BY p.updated_at DESC
         """
-    load_stmt: str = """
-        COPY access.permission FROM STDIN
-        (FORMAT 'csv', HEADER false, DELIMITER '|',
-        QUOTE E'\b', NULL 'null')
-        """
-    permission_fields: list = [
-        "id",
-        "name",
-        "description",
-        "created",
-        "modified",
-    ]
 
 
 settings = Settings()

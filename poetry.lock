@@ -760,7 +760,7 @@ grpc = ["grpcio (>=1.44.0,<2.0.0.dev0)"]
 name = "greenlet"
 version = "3.0.3"
 description = "Lightweight in-process concurrent programming"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "greenlet-3.0.3-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:9da2bd29ed9e4f15955dd1595ad7bc9320308a3b766ef7f837e23ad4b4aac31a"},
@@ -1958,7 +1958,7 @@ files = [
 name = "sqlalchemy"
 version = "2.0.29"
 description = "Database Abstraction Library"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "SQLAlchemy-2.0.29-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4c142852ae192e9fe5aad5c350ea6befe9db14370b34047e1f0f7cf99e63c63b"},
@@ -2405,4 +2405,4 @@ test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "w
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "9cc9c90c19cf2eb8e867e0fb1ed9211a98d9068e692613b01951fe3c4d362d43"
+content-hash = "33e523db4a006e2c6f37f1f63b41635bf6f94d5b1347dd7a5bb2f457cd4e5b11"

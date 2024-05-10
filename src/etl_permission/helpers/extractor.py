@@ -1,18 +1,9 @@
 from collections.abc import Iterator
-from dataclasses import dataclass
-from datetime import datetime
 from logging import Logger
 
 from psycopg2.extensions import connection as _connection
 
-
-@dataclass(frozen=True)
-class Permission:
-    id: str
-    name: str
-    description: str
-    created: datetime
-    modified: datetime
+from src.etl_permission.config.base import Permission
 
 
 class PostgresExtractor:

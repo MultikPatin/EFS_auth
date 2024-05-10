@@ -26,7 +26,7 @@ def etl(
     logger.info("The last sync was %s", last_sync_timestamp)
 
     row_generator = extractor.extract(str(last_sync_timestamp))
-    loader.save_table(row_generator, settings.permission_fields)
+    loader.save_table(row_generator)
     state.set_state("last_sync_timestamp", str(datetime.utcnow()))
 
 
@@ -50,7 +50,6 @@ if __name__ == "__main__":
         )
         loader = PostgresLoader(
             connection=pg_content_conn,
-            stmt=settings.load_stmt,
             logger=create_logger("ETL permissions PostgresLoader"),
         )
 
