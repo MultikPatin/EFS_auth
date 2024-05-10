@@ -2406,4 +2406,4 @@ test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "w
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "33e523db4a006e2c6f37f1f63b41635bf6f94d5b1347dd7a5bb2f457cd4e5b11"
+content-hash = "3f760eb479dd77093b659643082eddcd791bbb2f75ac594f823a4485d1703c0b"
