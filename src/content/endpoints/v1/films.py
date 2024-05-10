@@ -51,7 +51,6 @@ async def film_details(
         HTTPException: If the film does not exist
     """
     permissions = await current_user.get_permissions(role_uuid, request)
-    print(f"\n\n\n\n User permissions:\n{permissions} \n\n\n\n")
     film = await film_service.get_by_id(film_uuid, permissions)
     if not film:
         raise HTTPException(

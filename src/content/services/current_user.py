@@ -29,11 +29,6 @@ class JWTBearer(HTTPBearer):
                 status_code=HTTPStatus.UNAUTHORIZED,
                 detail="Only Bearer token might be accepted",
             )
-        # token = credentials.credentials
-        # if not token:
-        #     token = request.cookies.get("access_token_cookie")
-
-        # decoded_token = self.parse_token(token)
         decoded_token = self.parse_token(credentials.credentials)
         if not decoded_token:
             raise HTTPException(
@@ -84,6 +79,7 @@ class CurrentUserService:
         )
         if not permissions:
             return
+
         return permissions.permissions
 
 
