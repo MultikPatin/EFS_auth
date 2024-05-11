@@ -3,6 +3,7 @@ from typing import Generic, TypeVar
 from pydantic import BaseModel
 
 from src.content.db.abstract import AbstractDBClient
+from src.content.models.api.v1.role import ResponsePermission
 from src.core.cache.abstract import AbstractModelCache
 
 ModelDB = TypeVar("ModelDB", bound=BaseModel)
@@ -23,9 +24,19 @@ class BaseElasticService(Generic[ModelDB]):
         self._cache_ex = cache_ex
 
     async def _get_by_id(
-        self, obj_id: str, model: type[ModelDB]
+        self,
+        obj_id: str,
+        model: type[ModelDB],
+        user_permissions: list[ResponsePermission],
     ) -> ModelDB | None:
-        key = self._cache.build_key(self._key_prefix, obj_id)
+        key_user_permissions = None
+        if user_permissions:
+            key_user_permissions = "".join(
+                [permission.uuid for permission in user_permissions]
+            )
+        key = self._cache.build_key(
+            self._key_prefix, obj_id, key_user_permissions
+        )
         doc = await self._cache.get_one_model(key, model)
         if not doc:
             doc = await self._db.get_by_id(
@@ -43,9 +54,19 @@ class BaseElasticService(Generic[ModelDB]):
         search_query: str | None,
         field: str,
         model: type[ModelDB],
+        user_permissions: list[ResponsePermission],
     ) -> list[ModelDB] | None:
+        key_user_permissions = None
+        if user_permissions:
+            key_user_permissions = "".join(
+                [permission.uuid for permission in user_permissions]
+            )
         key = self._cache.build_key(
-            self._key_prefix, page_number, page_size, search_query
+            self._key_prefix,
+            page_number,
+            page_size,
+            search_query,
+            key_user_permissions,
         )
         persons = await self._cache.get_list_model(key, model)
         if not persons:
