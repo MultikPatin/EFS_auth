@@ -1,7 +1,10 @@
+from dotenv import load_dotenv
 from pydantic import SecretStr
 from pydantic.fields import Field
 
 from src.core.configs.base import ServiceSettings
+
+load_dotenv()
 
 
 class PostgresContentSettings(ServiceSettings):
@@ -19,10 +22,6 @@ class PostgresContentSettings(ServiceSettings):
     sqlalchemy_echo: bool = Field("True", alias="CONTENT_SQLALCHEMY_ECHO")
 
 
-async def get_postgres_content_settings() -> PostgresContentSettings:
-    return PostgresContentSettings()
-
-
 class PostgresAuthSettings(ServiceSettings):
     """
     This class is used to store the Postgres auth db connection settings.
@@ -36,7 +35,3 @@ class PostgresAuthSettings(ServiceSettings):
     host_local: str = Field(..., alias="AUTH_POSTGRES_HOST_LOCAL")
     port_local: int = Field(..., alias="AUTH_POSTGRES_PORT_LOCAL")
     sqlalchemy_echo: bool = Field("True", alias="AUTH_SQLALCHEMY_ECHO")
-
-
-async def get_postgres_auth_settings() -> PostgresAuthSettings:
-    return PostgresAuthSettings()

@@ -12,3 +12,4 @@ set -e
 chown www-data:www-data /var/log
 rm Dockerfile
 uwsgi --strict --ini "$SRC_PATH"/"$APP_DIR"/uwsgi.ini
+#
