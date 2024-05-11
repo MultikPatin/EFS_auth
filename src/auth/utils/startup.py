@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from src.auth.core.config import settings
 from src.auth.models.api.v1.roles import RequestRoleCreate
@@ -66,3 +66,20 @@ class StartUpService:
             db_obj = User(**instance_dict)
             session.add(db_obj)
             await session.commit()
+
+    async def create_partition(self) -> None:
+        """creating partition by login_history"""
+        async with self._database.get_session() as session:
+            print("\n START create_partition: \n")
+            await session.execute(
+                text(
+                    """CREATE SCHEMA partman;
+                    """
+                )
+            )
+            # await session.execute(
+            #     text(
+            #         """CREATE EXTENSION pg_partman WITH SCHEMA partman;
+            #         """
+            #     )
+            # )
