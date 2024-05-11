@@ -142,6 +142,7 @@ exclude = [
     ".git",
     ".git-rewrite",
     ".hg",
+    ".sh",
     ".mypy_cache",
     ".nox",
     ".pants.d",
@@ -162,7 +163,6 @@ exclude = [
     "*/migrations/",
     "*/config/components/",
     "tasks",
-    "entrypoint.sh",
 ]
 per-file-ignores = { }
 
