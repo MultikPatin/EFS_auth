@@ -12,17 +12,8 @@ from .postgres import (
     PostgresAuthSettings,
     PostgresContentSettings,
 )
-from src.core.utils.sqlalchemy import SQLAlchemyConnectMixin
 
 load_dotenv()
-
-
-class PostgresContentConnect(PostgresContentSettings, SQLAlchemyConnectMixin):
-    pass
-
-
-class PostgresAuthConnect(PostgresAuthSettings, SQLAlchemyConnectMixin):
-    pass
 
 
 class AdvancedSettings(ServiceSettings):
@@ -32,8 +23,8 @@ class AdvancedSettings(ServiceSettings):
         extra="ignore",
     )
     local: bool = Field("True", alias="LOCAL")
-    postgres_content: PostgresContentConnect = PostgresContentConnect()
-    postgres_auth: PostgresAuthConnect = PostgresAuthConnect()
+    postgres_content: PostgresContentSettings = PostgresContentSettings()
+    postgres_auth: PostgresAuthSettings = PostgresAuthSettings()
     host: str = Field(..., alias="ADMIN_API_HOST")
     port: int = Field(..., alias="ADMIN_API_PORT")
     host_local: str = Field(..., alias="ADMIN_API_PORT_LOCAL")
