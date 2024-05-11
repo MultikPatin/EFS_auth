@@ -3,8 +3,7 @@ from pydantic_settings import BaseSettings
 from pydantic_settings.main import SettingsConfigDict
 
 from src.core.configs.elastic import ElasticContentSettings
-from src.core.configs.postgres import PostgresSettings
-from src.etl_content.config.postgres import PostgresSettingsWithPsycoConnect
+from src.etl_content.config.postgres import PostgresContentConnect
 
 
 class Settings(BaseSettings):
@@ -13,7 +12,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    postgres: PostgresSettings = PostgresSettingsWithPsycoConnect()
+    postgres: PostgresContentConnect = PostgresContentConnect()
     elastic: ElasticContentSettings = ElasticContentSettings()
     buffer_size: int = Field(..., alias="ETL_CONTENT_BUFFERED_ROWS")
     sleep_time: int = Field(..., alias="ETL_CONTENT_SLEEP_TIME")
@@ -21,7 +20,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-_ELASTIC_SETTINGS = {
+ELASTIC_SETTINGS = {
     "refresh_interval": "1s",
     "analysis": {
         "filter": {

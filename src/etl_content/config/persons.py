@@ -1,6 +1,6 @@
-from src.etl_content.config.base import _ELASTIC_SETTINGS
+from src.etl_content.config.base import ELASTIC_SETTINGS
 
-_ELASTIC_MAPPING = {
+ELASTIC_MAPPING = {
     "dynamic": "strict",
     "properties": {
         "uuid": {"type": "keyword"},
@@ -23,8 +23,8 @@ _ELASTIC_MAPPING = {
 }
 
 ELASTIC_DATA = {
-    "settings": _ELASTIC_SETTINGS,
-    "mappings": _ELASTIC_MAPPING,
+    "settings": ELASTIC_SETTINGS,
+    "mappings": ELASTIC_MAPPING,
 }
 
 SQL_QUERY = """
