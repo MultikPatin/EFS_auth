@@ -6,12 +6,21 @@ from pydantic.fields import Field
 from pydantic_settings import BaseSettings
 from pydantic_settings.main import SettingsConfigDict
 
-from src.etl_permission.config.postgres import (
-    PostgresAuthSettingsPsyco,
-    PostgresContentSettingsPsyco,
+from src.core.configs.postgres import (
+    PostgresAuthSettings,
+    PostgresContentSettings,
 )
+from src.core.utils.psycopg import PsycopgConnectMixin
 
 load_dotenv()
+
+
+class PostgresContentConnect(PostgresContentSettings, PsycopgConnectMixin):
+    pass
+
+
+class PostgresAuthConnect(PostgresAuthSettings, PsycopgConnectMixin):
+    pass
 
 
 @dataclass(frozen=True)
@@ -29,10 +38,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    postgres_content: PostgresContentSettingsPsyco = (
-        PostgresContentSettingsPsyco()
-    )
-    postgres_auth: PostgresAuthSettingsPsyco = PostgresAuthSettingsPsyco()
+    postgres_content: PostgresContentConnect = PostgresContentConnect()
+    postgres_auth: PostgresAuthConnect = PostgresAuthConnect()
     buffer_size: int = Field(..., alias="ETL_PERMISSION_BUFFERED_ROWS")
     sleep_time: int = Field(..., alias="ETL_PERMISSION_SLEEP_TIME")
     extractor_stmt: str = """

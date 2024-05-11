@@ -11,10 +11,15 @@ from src.auth.core.logger import LOGGING
 from src.core.configs.base import ProjectSettings
 from src.core.configs.postgres import PostgresAuthSettings
 from src.core.configs.redis import RedisAuthSettings
+from src.core.utils.sqlalchemy import SQLAlchemyConnectMixin
 
 logging_config.dictConfig(LOGGING)
 
 load_dotenv()
+
+
+class PostgresAuthConnect(PostgresAuthSettings, SQLAlchemyConnectMixin):
+    pass
 
 
 class Settings(ProjectSettings):
@@ -23,7 +28,7 @@ class Settings(ProjectSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    postgres: PostgresAuthSettings = PostgresAuthSettings()
+    postgres: PostgresAuthConnect = PostgresAuthConnect()
 
     redis: RedisAuthSettings = RedisAuthSettings()
 

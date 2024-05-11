@@ -1,9 +1,14 @@
 from psycopg2.extras import DictCursor
+from pydantic import SecretStr
 
-from src.core.configs.postgres import PostgresContentSettings
+from src.core.configs.base import ServiceSettings
 
 
-class PostgresSettingsWithPsycoConnect(PostgresContentSettings):
+class PsycopgConnectMixin(ServiceSettings):
+    database: str
+    user: str
+    password: SecretStr
+
     @property
     def psycopg2_connect(self) -> dict:
         return {

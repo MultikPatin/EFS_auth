@@ -30,7 +30,6 @@ class PostgresLoader:
             self.__upsert_data(column, values)
 
     def __upsert_data(self, column: str, values: str):
-        print(values)
         stmt = (
             f"INSERT INTO access.permission ({column}) VALUES {values} "
             f"ON CONFLICT (id) DO UPDATE SET "
@@ -39,7 +38,6 @@ class PostgresLoader:
             f"created=EXCLUDED.created, "
             f"modified=EXCLUDED.modified;"
         )
-        print(stmt)
         self.__cursor.execute(stmt)
         self.__connection.commit()
 

@@ -17,7 +17,7 @@ from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.auth.cache import redis
-from src.auth.core.config import settings
+from src.auth.core.config import PostgresAuthConnect, settings
 from src.auth.core.logger import LOGGING
 from src.auth.endpoints.v1 import (
     oauth2,
@@ -29,7 +29,6 @@ from src.auth.endpoints.v1 import (
 )
 from src.auth.oauth_clients import google
 from src.auth.utils.startup import StartUpService
-from src.core.configs.postgres import PostgresAuthSettings
 from src.core.db.clients.postgres import PostgresDatabase
 from src.core.utils.logger import create_logger
 
@@ -37,7 +36,7 @@ from src.core.utils.logger import create_logger
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
-        PostgresDatabase(PostgresAuthSettings()),
+        PostgresDatabase(PostgresAuthConnect()),
     )
     await startup_methods.create_empty_role()
     await startup_methods.create_admin_user()
@@ -77,7 +76,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 FastAPIInstrumentor.instrument_app(app)
-
 
 # @app.middleware("http")
 # async def check_request_id(request: Request, call_next):
