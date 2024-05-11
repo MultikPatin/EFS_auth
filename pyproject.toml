@@ -90,10 +90,12 @@ etl_content = [
     "backoff",
     "elasticsearch",
     "psycopg2-binary",
+    "sqlalchemy",
 ]
 etl_permission = [
     "backoff",
     "psycopg2-binary",
+    "sqlalchemy",
 ]
 
 [tool.poetry.group.dev]

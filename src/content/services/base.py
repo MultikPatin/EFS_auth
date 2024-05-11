@@ -32,7 +32,7 @@ class BaseElasticService(Generic[ModelDB]):
         key_user_permissions = None
         if user_permissions:
             key_user_permissions = "".join(
-                [permission.name for permission in user_permissions]
+                [permission.uuid for permission in user_permissions]
             )
         key = self._cache.build_key(
             self._key_prefix, obj_id, key_user_permissions
@@ -59,7 +59,7 @@ class BaseElasticService(Generic[ModelDB]):
         key_user_permissions = None
         if user_permissions:
             key_user_permissions = "".join(
-                [permission.name for permission in user_permissions]
+                [permission.uuid for permission in user_permissions]
             )
         key = self._cache.build_key(
             self._key_prefix,

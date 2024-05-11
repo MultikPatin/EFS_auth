@@ -25,10 +25,10 @@ class FilmService(BaseElasticService[FilmDB]):
         )
         if film and user_permissions:
             user_permissions_set = {
-                permission.name for permission in user_permissions
+                permission.uuid for permission in user_permissions
             }
             film_permissions_set = (
-                {permission.get("name") for permission in film.permissions}
+                {permission.get("uuid") for permission in film.permissions}
                 if film.permissions
                 else set()
             )
@@ -52,7 +52,7 @@ class FilmService(BaseElasticService[FilmDB]):
         key_user_permissions = None
         if user_permissions:
             key_user_permissions = "".join(
-                [permission.name for permission in user_permissions]
+                [permission.uuid for permission in user_permissions]
             )
         key = self._cache.build_key(
             self._key_prefix,
@@ -136,14 +136,14 @@ class FilmService(BaseElasticService[FilmDB]):
     ):
         if user_permissions:
             user_permissions_set = {
-                permission.name for permission in user_permissions
+                permission.uuid for permission in user_permissions
             }
         else:
             user_permissions_set = set()
         allowed_films = []
         for film in films:
             film_permissions_set = (
-                {permission.get("name") for permission in film.permissions}
+                {permission.get("uuid") for permission in film.permissions}
                 if film.permissions
                 else set()
             )
