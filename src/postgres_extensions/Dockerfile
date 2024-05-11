@@ -1,26 +1,8 @@
-FROM postgres:${POSTGRES_VERSION}
+FROM postgres:16
 
-ENV SRC_PATH '/app'
-ENV APP_DIR 'src/auth'
+RUN apt update -y && apt upgrade -y && apt install -y libpq-dev make git gcc postgresql-server-dev-16
 
-WORKDIR $SRC_PATH
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-COPY poetry.lock pyproject.toml ./
-RUN apt update -y && adpt upgrade -y && apt install -y wget make
-
-RUN cd /tmp \
-    && wget "https://github.com/keithf4/pg_partman/archive/refs/heads/master.tar.gz" \
-    # && echo "${PARTMAN_CHECKSUM} ${PARTMAN_VERSION}.tar.gz" | sha512sum --check \
-    && export C_INCLUDE_PATH=/opt/bitnami/postgresql/include/:/opt/bitnami/common/include/ \
-    && export LIBRARY_PATH=/opt/bitnami/postgresql/lib/:/opt/bitnami/common/lib/ \
-    && export LD_LIBRARY_PATH=/opt/bitnami/postgresql/lib/:/opt/bitnami/common/lib/ \
-    && tar zxf master.tar.gz && cd pg_partman-master\
-    && make \
+RUN git clone https://github.com/keithf4/pg_partman \
+    && cd pg_partman \
     && make install \
-    && cd .. && rm -r pg_partman-
-
-
-# ENTRYPOINT ["/bin/bash", "-c", "exec ${SRC_PATH}/${APP_DIR}/entrypoint.sh"]
+    && make NO_BGW=1 install

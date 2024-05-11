@@ -46,10 +46,11 @@ services:
       - services
 
   postgres_auth:
+    build:
+      dockerfile: src/postgres_extensions/Dockerfile
+
     container_name: ${AUTH_POSTGRES_HOST}
-    extends:
-      file: infra/helpers/base.yml
-      service: postgres_base
+    restart: always
     environment:
       - POSTGRES_DB=${AUTH_POSTGRES_DB}
       - POSTGRES_USER=${AUTH_POSTGRES_USER}
@@ -60,6 +61,10 @@ services:
       - postgres_auth_data:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -h ${AUTH_POSTGRES_HOST}" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     ports:
       - "${AUTH_POSTGRES_PORT_LOCAL}:${AUTH_POSTGRES_PORT}"
     networks:
@@ -71,7 +76,7 @@ services:
     container_name: migrations_auth
     environment:
       - LOCAL=False
-      - DEBUG=True
+      - DEBUG=False
       - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
       - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
       - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
@@ -233,7 +238,7 @@ services:
     restart: always
     environment:
       - LOCAL=False
-      - DEBUG=True
+      - DEBUG=False
       - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
       - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
       - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
@@ -280,7 +285,7 @@ services:
     restart: always
     environment:
       - LOCAL=False
-      - DEBUG=True
+      - DEBUG=False
       - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
       - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
       - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}

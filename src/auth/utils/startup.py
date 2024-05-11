@@ -70,16 +70,96 @@ class StartUpService:
     async def create_partition(self) -> None:
         """creating partition by login_history"""
         async with self._database.get_session() as session:
-            print("\n START create_partition: \n")
             await session.execute(
                 text(
-                    """CREATE SCHEMA partman;
+                    """CREATE SCHEMA IF NOT EXISTS partman;
                     """
                 )
             )
-            # await session.execute(
-            #     text(
-            #         """CREATE EXTENSION pg_partman WITH SCHEMA partman;
-            #         """
-            #     )
-            # )
+
+            await session.execute(
+                text(
+                    """CREATE EXTENSION IF NOT EXISTS pg_partman WITH SCHEMA partman;
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """DROP TABLE IF EXISTS public.login_history CASCADE ;
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """DROP TABLE IF EXISTS public.login_history_template CASCADE ;
+                    """
+                )
+            )
+            await session.commit()
+            await session.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS public.login_history (
+                        user_uuid uuid NOT NULL,
+                        ip_address VARCHAR(64) NOT NULL,
+                        user_agent VARCHAR(255) NOT NULL,
+                        uuid uuid NOT NULL,
+                        created_at timestamp NOT NULL DEFAULT TIMEZONE('utc', now()),
+                        updated_at timestamp NOT NULL DEFAULT TIMEZONE('utc', now())
+                    ) PARTITION BY RANGE (created_at);
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """
+                    CREATE INDEX ON public.login_history (created_at);
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """CREATE TABLE IF NOT EXISTS public.login_history_template (LIKE public.login_history);
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """ALTER TABLE public.login_history_template ADD PRIMARY KEY (uuid);
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """ALTER TABLE public.login_history_template ADD FOREIGN KEY (user_uuid) REFERENCES public.users (uuid);
+                    """
+                )
+            )
+            await session.commit()
+            await session.execute(
+                text(
+                    """
+                    TRUNCATE partman.part_config_sub CASCADE;
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """
+                    TRUNCATE partman.part_config CASCADE;
+                    """
+                )
+            )
+            await session.execute(
+                text(
+                    """
+                    SELECT partman.create_parent(
+                        p_parent_table := 'public.login_history',
+                        p_control := 'created_at',
+                        p_interval := '30 day',
+                        p_template_table := 'public.login_history_template'
+                    );
+                    """
+                )
+            )
+            await session.commit()
