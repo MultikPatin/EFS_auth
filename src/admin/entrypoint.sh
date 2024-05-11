@@ -3,7 +3,6 @@ rm poetry.lock
 rm pyproject.toml
 cd "$APP_DIR"/
 python manage.py migrate movies --fake
-#python manage.py migrate access --database=auth_db --fake
 python manage.py migrate
 python manage.py collectstatic --clear --noinput
 cp -r "$SRC_PATH"/"$APP_DIR"/collected_static/. /backend_static/static/

@@ -2393,16 +2393,16 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.link
 testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [extras]
-admin = ["django", "django-debug-toolbar", "django-split-settings", "gunicorn", "psycopg2-binary", "uwsgi"]
-auth = ["async-fastapi-jwt-auth", "asyncpg", "authlib", "fastapi", "gunicorn", "itsdangerous", "orjson", "redis", "sqlalchemy", "uvicorn", "werkzeug"]
+admin = ["certifi", "django", "django-debug-toolbar", "django-split-settings", "gunicorn", "psycopg2-binary", "uwsgi"]
+auth = ["async-fastapi-jwt-auth", "asyncpg", "authlib", "certifi", "fastapi", "gunicorn", "itsdangerous", "orjson", "redis", "sqlalchemy", "uvicorn", "werkzeug"]
 etl-content = ["backoff", "elasticsearch", "psycopg2-binary", "sqlalchemy"]
 etl-permission = ["backoff", "psycopg2-binary", "sqlalchemy"]
 migrations = ["alembic", "asyncpg", "sqlalchemy", "werkzeug"]
-movies = ["elasticsearch", "fastapi", "gunicorn", "pyjwt", "redis", "uvicorn"]
+movies = ["certifi", "elasticsearch", "fastapi", "gunicorn", "pyjwt", "redis", "uvicorn"]
 telemetry = ["opentelemetry-api", "opentelemetry-exporter-jaeger", "opentelemetry-instrumentation-fastapi", "opentelemetry-sdk"]
 test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "werkzeug"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "70a1ec3bc8cbc60dde3ebfc1ff54978269733996d585d9d955d639036a03ab0d"
+content-hash = "450a9d72628169ed4d4f914344f47235cdc100cf8f86a7139821c98cb31bb0c5"

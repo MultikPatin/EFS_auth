@@ -375,6 +375,8 @@ services:
       - ./infra/nginx/configs:/etc/nginx/conf.d:ro
       - static:/staticfiles/
     restart: unless-stopped
+    environment:
+      - auth_api_host=${AUTH_API_HOST}
     depends_on:
       postgres_auth:
         condition: service_healthy
@@ -389,6 +391,8 @@ services:
       service_auth:
         condition: service_started
       service_content:
+        condition: service_started
+      service_admin:
         condition: service_started
     ports:
       - "443:443"

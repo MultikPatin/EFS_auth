@@ -49,6 +49,7 @@ admin = [
     "gunicorn",
     "psycopg2-binary",
     "uwsgi",
+    "certifi",
 ]
 auth = [
     "redis",
@@ -62,6 +63,7 @@ auth = [
     "async-fastapi-jwt-auth",
     "authlib",
     "itsdangerous",
+    "certifi",
 ]
 migrations = [
     "sqlalchemy",
@@ -85,6 +87,7 @@ movies = [
     "gunicorn",
     "uvicorn",
     "pyjwt",
+    "certifi",
 ]
 etl_content = [
     "backoff",
