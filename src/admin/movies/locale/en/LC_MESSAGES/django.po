@@ -1,0 +1,111 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-02-05 20:17+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\core\models.py:8
+msgid "description"
+msgstr "description"
+
+#: .\movies\apps.py:8
+msgid "movies"
+msgstr "movies"
+
+#: .\movies\models.py:15
+msgid "movie"
+msgstr "movie"
+
+#: .\movies\models.py:16
+msgid "tv_show"
+msgstr "tv_show"
+
+#: .\movies\models.py:18
+msgid "title"
+msgstr "title"
+
+#: .\movies\models.py:19
+msgid "creation_date"
+msgstr "creation_date"
+
+#: .\movies\models.py:21
+msgid "rating"
+msgstr "rating"
+
+#: .\movies\models.py:26 .\movies\models.py:91
+msgid "type"
+msgstr "type"
+
+#: .\movies\models.py:33
+msgid "film_work"
+msgstr "film_work"
+
+#: .\movies\models.py:34
+msgid "film_works"
+msgstr "film_works"
+
+#: .\movies\models.py:43
+msgid "name"
+msgstr "name"
+
+#: .\movies\models.py:47 .\movies\models.py:58
+msgid "genre"
+msgstr "genre"
+
+#: .\movies\models.py:48
+msgid "genres"
+msgstr "genres"
+
+#: .\movies\models.py:63
+msgid "genre_film_work"
+msgstr "genre_film_work"
+
+#: .\movies\models.py:64
+msgid "genre_film_works"
+msgstr "genre_film_works"
+
+#: .\movies\models.py:69
+msgid "full_name"
+msgstr "full_name"
+
+#: .\movies\models.py:73 .\movies\models.py:89
+msgid "person"
+msgstr "person"
+
+#: .\movies\models.py:74
+msgid "persons"
+msgstr "persons"
+
+#: .\movies\models.py:83
+msgid "actor"
+msgstr "actor"
+
+#: .\movies\models.py:84
+msgid "director"
+msgstr "director"
+
+#: .\movies\models.py:85
+msgid "writer"
+msgstr "writer"
+
+#: .\movies\models.py:95
+msgid "person_film_work"
+msgstr "person_film_work"
+
+#: .\movies\models.py:96
+msgid "person_film_works"
+msgstr "person_film_works"

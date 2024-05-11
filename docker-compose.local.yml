@@ -1,0 +1,429 @@
+name: practix
+services:
+
+  elastic_content:
+    image: elasticsearch:${ELASTIC_VERSION}
+    container_name: ${CONTENT_ELASTIC_HOST}
+    restart: always
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+      - ES_JAVA_OPTS=${CONTENT_ELASTIC_ES_JAVA_OPTS}
+      - ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+    volumes:
+      - elastic_content_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -s http://${CONTENT_ELASTIC_HOST}:${CONTENT_ELASTIC_PORT} >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 50
+      start_period: 10s
+    ports:
+      - "${CONTENT_ELASTIC_PORT_LOCAL}:${CONTENT_ELASTIC_PORT}"
+    networks:
+      - services
+
+  postgres_content:
+    container_name: ${CONTENT_POSTGRES_HOST}
+    extends:
+      file: infra/helpers/base.yml
+      service: postgres_base
+    environment:
+      - POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+    volumes:
+      - postgres_content_data:/var/lib/postgresql/data/
+      - ./postgres_content/:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h ${CONTENT_POSTGRES_HOST}" ]
+    ports:
+      - "${CONTENT_POSTGRES_PORT_LOCAL}:${CONTENT_POSTGRES_PORT}"
+    networks:
+      - services
+
+  postgres_auth:
+    build:
+      dockerfile: src/postgres_extensions/Dockerfile
+
+    container_name: ${AUTH_POSTGRES_HOST}
+    restart: always
+    environment:
+      - POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h ${AUTH_POSTGRES_HOST}" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "${AUTH_POSTGRES_PORT_LOCAL}:${AUTH_POSTGRES_PORT}"
+    networks:
+      - services
+
+  migrations_auth:
+    build:
+      dockerfile: ./migrations/Dockerfile
+    container_name: migrations_auth
+    environment:
+      - LOCAL=False
+      - DEBUG=False
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+    networks:
+      - services
+
+  redis_content:
+    container_name: ${CONTENT_REDIS_HOST}
+    extends:
+      file: infra/helpers/base.yml
+      service: redis_base
+    environment:
+      - REDIS_HOST=${CONTENT_REDIS_HOST}
+      - REDIS_PORT=${CONTENT_REDIS_PORT}
+    volumes:
+      - redis_content_data:/var/lib/redis/data
+    ports:
+      - "${CONTENT_REDIS_PORT_LOCAL}:${CONTENT_REDIS_PORT}"
+    networks:
+      - services
+
+  redis_auth:
+    container_name: ${AUTH_REDIS_HOST}
+    extends:
+      file: infra/helpers/base.yml
+      service: redis_base
+    environment:
+      - REDIS_HOST=${AUTH_REDIS_HOST}
+      - REDIS_PORT=${AUTH_REDIS_PORT}
+    volumes:
+      - redis_auth_data:/var/lib/redis/data
+    ports:
+      - "${AUTH_REDIS_PORT_LOCAL}:${AUTH_REDIS_PORT}"
+    networks:
+      - services
+
+  etl_content_movies:
+      build:
+        dockerfile: src/etl_content/Dockerfile
+      restart: always
+      environment:
+        - ETL_NAME=movies
+        - LOCAL=False
+        - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+        - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+        - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
+        - CONTENT_ELASTIC_PORT_LOCAL=${CONTENT_ELASTIC_PORT_LOCAL}
+        - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+        - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+        - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+        - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+        - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+        - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+        - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+        - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
+        - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
+      depends_on:
+        postgres_content:
+          condition: service_healthy
+        elastic_content:
+          condition: service_healthy
+      networks:
+        - services
+
+  etl_content_genres:
+    build:
+      dockerfile: src/etl_content/Dockerfile     poetry.lock
+    environment:
+      - ETL_NAME=genres
+      - LOCAL=False
+      - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+      - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
+      - CONTENT_ELASTIC_PORT_LOCAL=${CONTENT_ELASTIC_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
+      - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+    networks:
+      - services
+
+  etl_content_persons:
+    build:
+      dockerfile: src/etl_content/Dockerfile
+    environment:
+      - ETL_NAME=persons
+      - LOCAL=False
+      - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+      - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
+      - CONTENT_ELASTIC_PORT_LOCAL=${CONTENT_ELASTIC_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED     poetry.lockWS}
+      - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+    networks:
+      - services
+
+  etl_permission:
+    build:
+      dockerfile: src/etl_permission/Dockerfile
+    environment:
+      - LOCAL=False
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_PERMISSION_BUFFERED_ROWS=${ETL_PERMISSION_BUFFERED_ROWS}
+      - ETL_PERMISSION_SLEEP_TIME=${ETL_PERMISSION_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      postgres_auth:
+        condition: service_healthy
+    networks:
+      - services
+
+  service_content:
+    build:
+      dockerfile: src/content/Dockerfile
+    container_name: ${CONTENT_API_HOST}
+    restart: always
+    environment:
+      - LOCAL=False
+      - DEBUG=False
+      - CONTENT_ELASTIC_HOST=${CONTENT_ELASTIC_HOST}
+      - CONTENT_ELASTIC_PORT=${CONTENT_ELASTIC_PORT}
+      - CONTENT_ELASTIC_HOST_LOCAL=${CONTENT_ELASTIC_HOST_LOCAL}
+      - CONTENT_ELASTIC_PORT_LOCAL=${CONTENT_ELASTIC_PORT_LOCAL}
+      - CONTENT_REDIS_HOST=${CONTENT_REDIS_HOST}
+      - CONTENT_REDIS_PORT=${CONTENT_REDIS_PORT}
+      - CONTENT_REDIS_HOST_LOCAL=${CONTENT_REDIS_HOST_LOCAL}
+      - CONTENT_REDIS_PORT_LOCAL=${CONTENT_REDIS_PORT_LOCAL}
+      - CONTENT_PROJECT_NAME=${CONTENT_PROJECT_NAME}
+      - CONTENT_PROJECT_DESCRIPTION=${CONTENT_PROJECT_DESCRIPTION}
+      - CONTENT_API_HOST=${CONTENT_API_HOST}
+      - CONTENT_API_PORT=${CONTENT_API_PORT}
+      - CONTENT_API_DOCS_URL=${CONTENT_API_DOCS_URL}
+      - CONTENT_API_OPENAPI_URL=${CONTENT_API_OPENAPI_URL}
+      - CONTENT_API_CACHE_EXPIRE_FOR_FILM_SERVICE=${CONTENT_API_CACHE_EXPIRE_FOR_FILM_SERVICE}
+      - CONTENT_API_CACHE_EXPIRE_FOR_GENRES_SERVICE=${CONTENT_API_CACHE_EXPIRE_FOR_GENRES_SERVICE}
+      - CONTENT_API_CACHE_EXPIRE_FOR_PERSON_SERVICE=${CONTENT_API_CACHE_EXPIRE_FOR_PERSON_SERVICE}
+      - CONTENT_API_HOST=${CONTENT_API_HOST}
+      - CONTENT_API_PORT=${CONTENT_API_PORT}
+      - CONTENT_API_HOST_LOCAL=${CONTENT_API_HOST_LOCAL}
+      - CONTENT_API_PORT_LOCAL=${CONTENT_API_PORT_LOCAL}
+      - AUTH_AUTHJWT_SECRET_KEY=${AUTH_AUTHJWT_SECRET_KEY}
+      - AUTH_AUTHJWT_ALGORITHM=${AUTH_AUTHJWT_ALGORITHM}
+      - AUTH_API_HOST=${AUTH_API_HOST}
+      - AUTH_API_PORT=${AUTH_API_PORT}
+      - AUTH_API_HOST_LOCAL=${AUTH_API_HOST_LOCAL}
+      - AUTH_API_PORT_LOCAL=${AUTH_API_PORT_LOCAL}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+    ports:
+      - "${CONTENT_API_PORT_LOCAL}:${CONTENT_API_PORT}"
+    networks:
+      - services
+
+  service_auth:
+    build:
+      dockerfile: src/auth/Dockerfile
+    container_name: ${AUTH_API_HOST}
+    restart: always
+    environment:
+      - LOCAL=False
+      - DEBUG=False
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - AUTH_REDIS_HOST=${AUTH_REDIS_HOST}
+      - AUTH_REDIS_PORT=${AUTH_REDIS_PORT}
+      - AUTH_REDIS_HOST_LOCAL=${AUTH_REDIS_HOST_LOCAL}
+      - AUTH_REDIS_PORT_LOCAL=${AUTH_REDIS_PORT_LOCAL}
+      - AUTH_PROJECT_NAME=${AUTH_PROJECT_NAME}
+      - AUTH_PROJECT_DESCRIPTION=${AUTH_PROJECT_DESCRIPTION}
+      - AUTH_API_HOST=${AUTH_API_HOST}
+      - AUTH_API_PORT=${AUTH_API_PORT}
+      - AUTH_API_DOCS_URL=${AUTH_API_DOCS_URL}
+      - AUTH_API_OPENAPI_URL=${AUTH_API_OPENAPI_URL}
+      - AUTH_EMPTY_ROLE_NAME=${AUTH_EMPTY_ROLE_NAME}
+      - AUTH_EMPTY_ROLE_DESCRIPTION=${AUTH_EMPTY_ROLE_DESCRIPTION}
+      - AUTH_ADMIN_EMAIL=${AUTH_ADMIN_EMAIL}
+      - AUTH_ADMIN_PASSWORD=${AUTH_ADMIN_PASSWORD}
+      - AUTH_TOKEN_EXPIRE_TIME=${AUTH_TOKEN_EXPIRE_TIME}
+      - AUTH_USER_MAX_SESSIONS=${AUTH_USER_MAX_SESSIONS}
+      - AUTH_AUTHJWT_SECRET_KEY=${AUTH_AUTHJWT_SECRET_KEY}
+      - AUTH_AUTHJWT_COOKIE_CSRF_PROTECT=${AUTH_AUTHJWT_COOKIE_CSRF_PROTECT}
+      - AUTH_AUTHJWT_COOKIE_SECURE=${AUTH_AUTHJWT_COOKIE_SECURE}
+      - AUTH_AUTHJWT_ALGORITHM=${AUTH_AUTHJWT_ALGORITHM}
+      - AUTH_GOOGLE_CLIENT_ID=${AUTH_GOOGLE_CLIENT_ID}
+      - AUTH_GOOGLE_CLIENT_SECRET=${AUTH_GOOGLE_CLIENT_SECRET}
+      - AUTH_GOOGLE_CONFIG_URL=${AUTH_GOOGLE_CONFIG_URL}
+      - AUTH_GOOGLE_STATE=${AUTH_GOOGLE_STATE}
+      - AUTH_GOOGLE_PROMPT=${AUTH_GOOGLE_PROMPT}
+      - AUTH_REDIRECT_URI=${AUTH_REDIRECT_URI}
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_healthy
+    ports:
+      - "${AUTH_API_PORT_LOCAL}:${AUTH_API_PORT}"
+    networks:
+      - services
+
+  service_admin:
+    build:
+      dockerfile: src/admin/Dockerfile
+    container_name: ${ADMIN_API_HOST}
+    restart: always
+    environment:
+      - LOCAL=False
+      - ADMIN_DEBUG=${ADMIN_DEBUG}
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ADMIN_API_HOST=${ADMIN_API_HOST}
+      - ADMIN_API_PORT=${ADMIN_API_PORT}
+      - ADMIN_API_HOST_LOCAL=${ADMIN_API_HOST_LOCAL}
+      - ADMIN_API_PORT_LOCAL=${ADMIN_API_PORT_LOCAL}
+      - ADMIN_ALLOWED_HOSTS=${ADMIN_ALLOWED_HOSTS}
+      - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY}
+      - AUTH_API_HOST=${AUTH_API_HOST}
+      - AUTH_API_PORT=${AUTH_API_PORT}
+      - AUTH_API_HOST_LOCAL=${AUTH_API_HOST_LOCAL}
+      - AUTH_API_PORT_LOCAL=${AUTH_API_PORT_LOCAL}
+      - ADMIN_SUPERUSER_PASSWORD=${ADMIN_SUPERUSER_PASSWORD}
+      - ADMIN_SUPERUSER_EMAIL=${ADMIN_SUPERUSER_EMAIL}
+    volumes:
+      - static:/backend_static
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+    ports:
+      - "${ADMIN_API_PORT_LOCAL}:${ADMIN_API_PORT}"
+    networks:
+      - services
+
+  nginx:
+    image: nginx:${NGINX_VERSION}
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/configs:/etc/nginx/conf.d:ro
+      - static:/staticfiles/
+    restart: unless-stopped
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+      redis_auth:
+        condition: service_healthy
+      postgres_content:
+        condition: service_healthy
+      elastic_content:
+        condition: service_healthy
+      redis_content:
+        condition: service_healthy
+      service_auth:
+        condition: service_started
+      service_content:
+        condition: service_started
+      service_admin:
+        condition: service_started
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - services
+
+  jaeger:
+    image: jaegertracing/all-in-one:${JAEGER_VERSION}
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      service_auth:
+        condition: service_started
+    ports:
+      - "${JAEGER_PORT}:16686"
+      - "6831:6831/udp"
+    networks:
+      - services
+
+volumes:
+  elastic_content_data:
+  postgres_content_data:
+  redis_content_data:
+  postgres_auth_data:
+  redis_auth_data:
+  static:
+
+networks:
+  services:
