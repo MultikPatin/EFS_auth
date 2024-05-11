@@ -150,7 +150,7 @@ services:
 
   etl_content_genres:
     build:
-      dockerfile: src/etl_content/Dockerfile
+      dockerfile: src/etl_content/Dockerfile     poetry.lock
     environment:
       - ETL_NAME=genres
       - LOCAL=False
@@ -192,7 +192,7 @@ services:
       - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
       - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
       - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
-      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED     poetry.lockWS}
       - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
     depends_on:
       postgres_content:
@@ -394,6 +394,8 @@ services:
       service_auth:
         condition: service_started
       service_content:
+        condition: service_started
+      service_admin:
         condition: service_started
     ports:
       - "443:443"
