@@ -3,7 +3,12 @@ from pydantic_settings import BaseSettings
 from pydantic_settings.main import SettingsConfigDict
 
 from src.core.configs.elastic import ElasticContentSettings
-from src.etl_content.config.postgres import PostgresContentConnect
+from src.core.configs.postgres import PostgresContentSettings
+from src.core.utils.psycopg import PsycopgConnectMixin
+
+
+class PostgresContentConnect(PostgresContentSettings, PsycopgConnectMixin):
+    pass
 
 
 class Settings(BaseSettings):

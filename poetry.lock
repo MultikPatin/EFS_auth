@@ -309,7 +309,7 @@ files = [
 name = "certifi"
 version = "2024.2.2"
 description = "Python package for providing Mozilla's CA Bundle."
-optional = false
+optional = true
 python-versions = ">=3.6"
 files = [
     {file = "certifi-2024.2.2-py3-none-any.whl", hash = "sha256:dc383c07b76109f368f6106eee2b593b04a011ea4d55f652c6ca24a754d1cdd1"},
@@ -568,7 +568,7 @@ wmi = ["wmi (>=1.5.1)"]
 name = "elastic-transport"
 version = "8.13.0"
 description = "Transport classes and utilities shared among Python Elastic client libraries"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "elastic-transport-8.13.0.tar.gz", hash = "sha256:2410ec1ff51221e8b3a01c0afa9f0d0498e1386a269283801f5c12f98e42dc45"},
@@ -586,7 +586,7 @@ develop = ["aiohttp", "furo", "httpx", "mock", "opentelemetry-api", "opentelemet
 name = "elasticsearch"
 version = "8.13.1"
 description = "Python client for Elasticsearch"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "elasticsearch-8.13.1-py3-none-any.whl", hash = "sha256:ba2b3f8b30a7a81beae690f1cede52fbcfd29baf3ef5bb028d4fa86972feebd8"},
@@ -2117,7 +2117,7 @@ files = [
 name = "urllib3"
 version = "2.2.1"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "urllib3-2.2.1-py3-none-any.whl", hash = "sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d"},
@@ -2405,4 +2405,4 @@ test = ["backoff", "certifi", "fastapi", "psycopg2-binary", "pyjwt", "redis", "w
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "33e523db4a006e2c6f37f1f63b41635bf6f94d5b1347dd7a5bb2f457cd4e5b11"
+content-hash = "ddfa0fffed8b8b17e232574890be6b5803938836870314facc08f3fa0b012083"
