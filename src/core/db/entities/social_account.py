@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class SocialAccount(Entity):
     __tablename__ = "social_accounts"
     user_uuid: Mapped[UUID(as_uuid=True)] = mapped_column(
-        ForeignKey("users.uuid"), nullable=False
+        ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False
     )
     social_id: Mapped[str] = mapped_column(String(255), nullable=False)
     social_name: Mapped[str] = mapped_column(String(255), nullable=False)
