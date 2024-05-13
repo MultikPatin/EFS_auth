@@ -76,7 +76,6 @@ class StartUpService:
                     """
                 )
             )
-
             await session.execute(
                 text(
                     """CREATE EXTENSION IF NOT EXISTS pg_partman WITH SCHEMA partman;
@@ -95,7 +94,6 @@ class StartUpService:
                     """
                 )
             )
-            await session.commit()
             await session.execute(
                 text(
                     """
@@ -135,7 +133,6 @@ class StartUpService:
                     """
                 )
             )
-            await session.commit()
             await session.execute(
                 text(
                     """

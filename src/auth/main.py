@@ -6,6 +6,7 @@ import uvicorn
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from fastapi_limiter import FastAPILimiter
 from opentelemetry import trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -50,8 +51,12 @@ async def lifespan(app: FastAPI) -> Any:
         AsyncOAuth2Client(**settings.google.settings_dict),
         logger=create_logger("API OAUTH Google"),
     )
+    settings.redis.correct_port()
+    redis_limiter_connection = Redis(**settings.redis.connection_dict)
+    await FastAPILimiter.init(redis_limiter_connection)
     yield
     await redis.redis.close()
+    await FastAPILimiter.close()
 
 
 def configure_tracer() -> None:
@@ -59,8 +64,8 @@ def configure_tracer() -> None:
     trace.get_tracer_provider().add_span_processor(
         BatchSpanProcessor(
             JaegerExporter(
-                agent_host_name="localhost",
-                agent_port=6831,
+                agent_host_name=settings.jaeger_exporter_agent_host_name,
+                agent_port=settings.jaeger_exporter_agent_port,
             )
         )
     )
@@ -69,7 +74,9 @@ def configure_tracer() -> None:
     )
 
 
-configure_tracer()
+if settings.enable_tracer:
+    configure_tracer()
+
 app = FastAPI(
     title=settings.name,
     description=settings.description,

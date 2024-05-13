@@ -24,4 +24,5 @@ class ServiceSettings(BaseSettings):
 
 class ProjectSettings(ServiceSettings):
     debug: bool = Field("True", alias="DEBUG")
+    enable_tracer: bool = Field("True", alias="ENABLE_TRACER")
     base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

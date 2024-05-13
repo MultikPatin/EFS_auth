@@ -79,6 +79,7 @@ services:
       - DEBUG=False
       - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
       - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
       - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
       - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
       - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
@@ -150,7 +151,7 @@ services:
 
   etl_content_genres:
     build:
-      dockerfile: src/etl_content/Dockerfile     poetry.lock
+      dockerfile: src/etl_content/Dockerfile
     environment:
       - ETL_NAME=genres
       - LOCAL=False
@@ -192,41 +193,12 @@ services:
       - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
       - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
       - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
-      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED     poetry.lockWS}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
       - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
     depends_on:
       postgres_content:
         condition: service_healthy
       elastic_content:
-        condition: service_healthy
-    networks:
-      - services
-
-  etl_permission:
-    build:
-      dockerfile: src/etl_permission/Dockerfile
-    environment:
-      - LOCAL=False
-      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
-      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
-      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
-      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
-      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
-      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
-      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
-      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
-      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
-      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
-      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
-      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
-      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
-      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
-      - ETL_PERMISSION_BUFFERED_ROWS=${ETL_PERMISSION_BUFFERED_ROWS}
-      - ETL_PERMISSION_SLEEP_TIME=${ETL_PERMISSION_SLEEP_TIME}
-    depends_on:
-      postgres_content:
-        condition: service_healthy
-      postgres_auth:
         condition: service_healthy
     networks:
       - services
@@ -286,6 +258,10 @@ services:
     environment:
       - LOCAL=False
       - DEBUG=False
+      - ENABLE_TRACER=True
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=service_auth
+      - JAEGER_EXPORTER_AGENT_HOST_NAME=${JAEGER_EXPORTER_AGENT_HOST_NAME}
+      - JAEGER_EXPORTER_AGENT_PORT=${JAEGER_EXPORTER_AGENT_PORT}
       - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
       - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
       - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
@@ -370,6 +346,37 @@ services:
         condition: service_healthy
     ports:
       - "${ADMIN_API_PORT_LOCAL}:${ADMIN_API_PORT}"
+    networks:
+      - services
+
+  etl_permission:
+    build:
+      dockerfile: src/etl_permission/Dockerfile
+    environment:
+      - LOCAL=False
+      - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
+      - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
+      - AUTH_POSTGRES_HOST_LOCAL=${AUTH_POSTGRES_HOST_LOCAL}
+      - AUTH_POSTGRES_PORT_LOCAL=${AUTH_POSTGRES_PORT_LOCAL}
+      - CONTENT_POSTGRES_DB=${CONTENT_POSTGRES_DB}
+      - CONTENT_POSTGRES_USER=${CONTENT_POSTGRES_USER}
+      - CONTENT_POSTGRES_PASSWORD=${CONTENT_POSTGRES_PASSWORD}
+      - CONTENT_POSTGRES_HOST=${CONTENT_POSTGRES_HOST}
+      - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
+      - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
+      - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
+      - ETL_PERMISSION_BUFFERED_ROWS=${ETL_PERMISSION_BUFFERED_ROWS}
+      - ETL_PERMISSION_SLEEP_TIME=${ETL_PERMISSION_SLEEP_TIME}
+    depends_on:
+      postgres_content:
+        condition: service_healthy
+      postgres_auth:
+        condition: service_healthy
+      service_admin:
+        condition: service_started
     networks:
       - services
 

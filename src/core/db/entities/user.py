@@ -31,11 +31,13 @@ class User(Entity):
     login_history: Mapped[list["LoginHistory"]] = relationship(
         "LoginHistory",
         back_populates="user",
+        cascade="all, delete",
         order_by="LoginHistory.created_at.desc()",
     )
     social_accounts: Mapped[list["SocialAccount"] | None] = relationship(
         "SocialAccount",
         back_populates="user",
+        cascade="all, delete",
         order_by="SocialAccount.social_name.desc()",
     )
 
