@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
         PostgresDatabase(PostgresAuthConnect()),
     )
-    # await startup_methods.create_partition()
+    await startup_methods.create_partition()
     await startup_methods.create_empty_role()
     await startup_methods.create_admin_user()
     redis.redis = redis.RedisCache(
