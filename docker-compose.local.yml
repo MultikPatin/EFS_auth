@@ -79,6 +79,7 @@ services:
       - DEBUG=False
       - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
       - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
+      - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
       - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
       - AUTH_POSTGRES_HOST=${AUTH_POSTGRES_HOST}
       - AUTH_POSTGRES_PORT=${AUTH_POSTGRES_PORT}
@@ -150,7 +151,7 @@ services:
 
   etl_content_genres:
     build:
-      dockerfile: src/etl_content/Dockerfile     poetry.lock
+      dockerfile: src/etl_content/Dockerfile
     environment:
       - ETL_NAME=genres
       - LOCAL=False
@@ -192,7 +193,7 @@ services:
       - CONTENT_POSTGRES_PORT=${CONTENT_POSTGRES_PORT}
       - CONTENT_POSTGRES_HOST_LOCAL=${CONTENT_POSTGRES_HOST_LOCAL}
       - CONTENT_POSTGRES_PORT_LOCAL=${CONTENT_POSTGRES_PORT_LOCAL}
-      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED     poetry.lockWS}
+      - ETL_CONTENT_BUFFERED_ROWS=${ETL_CONTENT_BUFFERED_ROWS}
       - ETL_CONTENT_SLEEP_TIME=${ETL_CONTENT_SLEEP_TIME}
     depends_on:
       postgres_content:
@@ -286,6 +287,10 @@ services:
     environment:
       - LOCAL=False
       - DEBUG=False
+      - ENABLE_TRACER=True
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=service_auth
+      - JAEGER_EXPORTER_AGENT_HOST_NAME=${JAEGER_EXPORTER_AGENT_HOST_NAME}
+      - JAEGER_EXPORTER_AGENT_PORT=${JAEGER_EXPORTER_AGENT_PORT}
       - AUTH_POSTGRES_DB=${AUTH_POSTGRES_DB}
       - AUTH_POSTGRES_USER=${AUTH_POSTGRES_USER}
       - AUTH_POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
