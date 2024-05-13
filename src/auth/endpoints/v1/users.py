@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi_limiter.depends import RateLimiter
 
 from src.auth.models.api.base import StringRepresent
 from src.auth.models.api.v1.users import (
@@ -52,7 +53,12 @@ async def get_users(
     ]
 
 
-@router.post("/", response_model=ResponseUser, summary="Register the user")
+@router.post(
+    "/",
+    response_model=ResponseUser,
+    summary="Register the user",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
+)
 async def create_user(
     body: RequestUserCreate,
     user_service: UserService = Depends(get_user_service),
@@ -72,6 +78,7 @@ async def create_user(
     "/me/",
     response_model=ResponseUser,
     summary="Get the user himself details by id",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
 )
 async def get_user_me(
     request: Request,

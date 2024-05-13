@@ -65,6 +65,13 @@ class Settings(ProjectSettings):
     google: GoogleSettings = GoogleSettings()
     google_config: dict = loader.get_JSON_config(loader.google_url)
 
+    jaeger_exporter_agent_host_name: str = Field(
+        ..., alias="JAEGER_EXPORTER_AGENT_HOST_NAME"
+    )
+    jaeger_exporter_agent_port: int = Field(
+        ..., alias="JAEGER_EXPORTER_AGENT_PORT"
+    )
+
 
 settings = Settings()
 
