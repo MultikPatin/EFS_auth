@@ -6,6 +6,7 @@ import uvicorn
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+from fastapi_limiter import FastAPILimiter
 from opentelemetry import trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -39,7 +40,7 @@ async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
         PostgresDatabase(PostgresAuthConnect()),
     )
-    await startup_methods.create_partition()
+    # await startup_methods.create_partition()
     await startup_methods.create_empty_role()
     await startup_methods.create_admin_user()
     redis.redis = redis.RedisCache(
@@ -50,8 +51,12 @@ async def lifespan(app: FastAPI) -> Any:
         AsyncOAuth2Client(**settings.google.settings_dict),
         logger=create_logger("API OAUTH Google"),
     )
+    settings.redis.correct_port()
+    redis_limiter_connection = Redis(**settings.redis.connection_dict)
+    await FastAPILimiter.init(redis_limiter_connection)
     yield
     await redis.redis.close()
+    await FastAPILimiter.close()
 
 
 def configure_tracer() -> None:
