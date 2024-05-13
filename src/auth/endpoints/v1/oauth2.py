@@ -4,52 +4,50 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse, Response
 
 from src.auth.models.api.base import StringRepresent
-from src.auth.services.oauth2 import OAuth2Service, get_oauth2_service
+from src.auth.services.google_oauth2 import OAuth2Service, get_oauth2_service
 
 router = APIRouter()
 
 
 @router.get(
-    "/oauth_login/",
-    summary="Generate oauth server authorization url and redirect there",
+    "/oauth_google_login/",
+    summary="Generate google oauth server authorization url and redirect there",
 )
-async def oauth_login(
+async def oauth_google_login(
     oauth2_service: OAuth2Service = Depends(get_oauth2_service),
 ) -> RedirectResponse:
     """Endpoint to get to oauth server
 
-    Generate oauth server authorization url and redirect there
+    Generate google oauth server authorization url and redirect there
 
     Returns:
-    - **RedirectResponse**: Redirect to oauth server
+    - **RedirectResponse**: Redirect to google oauth server
     """
-    authorization_url = await oauth2_service.get_authorization_url()
+    authorization_url = await oauth2_service.get_google_authorization_url()
     return RedirectResponse(url=authorization_url)
 
 
 @router.get(
-    "/auth/",
+    "/google_auth/",
     response_model=StringRepresent,
     summary="Get user info from oauth server and login",
 )
-async def auth(
+async def google_auth(
     request: Request,
     response: Response,
     oauth2_service: OAuth2Service = Depends(get_oauth2_service),
 ) -> StringRepresent:
-    """User authentication in the Auth service
+    """User authentication in the google auth service
 
-    Get user info from oauth server and login
+    Get user info from google oauth server and login
 
     Returns:
-    - **StringRepresent**: Status code with message "The login was completed successfully"
+    - **StringRepresent**: Status code with message "The google login was completed successfully"
     """
     result = await oauth2_service.auth_via_google(request, response)
-    if isinstance(result, dict):
-        user_data = await oauth2_service.checkin_oauth_user(result)
-    else:
-        user_data = result
+    user_data = await oauth2_service.checkin_oauth_user(result)
     await oauth2_service.login(request, user_data)
     return StringRepresent(
-        code=HTTPStatus.OK, details="The login was completed successfully"
+        code=HTTPStatus.OK,
+        details="The google login was completed successfully",
     )
