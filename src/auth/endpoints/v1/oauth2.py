@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse, Response
+from fastapi_limiter.depends import RateLimiter
 
 from src.auth.models.api.base import StringRepresent
 from src.auth.services.oauth2 import OAuth2Service, get_oauth2_service
@@ -12,6 +13,7 @@ router = APIRouter()
 @router.get(
     "/oauth_login/",
     summary="Generate oauth server authorization url and redirect there",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
 )
 async def oauth_login(
     oauth2_service: OAuth2Service = Depends(get_oauth2_service),
@@ -31,6 +33,7 @@ async def oauth_login(
     "/auth/",
     response_model=StringRepresent,
     summary="Get user info from oauth server and login",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
 )
 async def auth(
     request: Request,

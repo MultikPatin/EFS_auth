@@ -2,6 +2,7 @@ from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request
+from fastapi_limiter.depends import RateLimiter
 
 from src.auth.models.api.base import StringRepresent
 from src.auth.models.api.v1.tokens import RequestLogin
@@ -12,7 +13,10 @@ router = APIRouter()
 
 
 @router.post(
-    "/login/", response_model=ResponseUser, summary="Issuing a JWT token"
+    "/login/",
+    response_model=ResponseUser,
+    summary="Issuing a JWT token",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
 )
 async def login(
     request: Request,
@@ -49,7 +53,8 @@ async def logout(
     Removing a JWT token
 
     Returns:
-    - **StringRepresent**: Status code with message "RefreshToken has been deleted, expired or does not exist"
+    - **StringRepresent**: Status code with message "RefreshToken has been deleted,
+                            expired or does not exist"
     """
     if isinstance(for_all_sessions, int):
         for_all_sessions = bool(for_all_sessions)
@@ -60,7 +65,12 @@ async def logout(
     )
 
 
-@router.post("/refresh/", response_model=StringRepresent, summary="JWT refresh")
+@router.post(
+    "/refresh/",
+    response_model=StringRepresent,
+    summary="JWT refresh",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
+)
 async def refresh_token(
     request: Request,
     token_service: TokenService = Depends(get_token_service),
@@ -79,7 +89,10 @@ async def refresh_token(
 
 
 @router.post(
-    "/verify/", response_model=StringRepresent, summary="verify access token"
+    "/verify/",
+    response_model=StringRepresent,
+    summary="verify access token",
+    dependencies=[Depends(RateLimiter(times=5, seconds=1))],
 )
 async def verify_token(
     request: Request,
