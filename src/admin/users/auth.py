@@ -13,7 +13,11 @@ class CustomBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
         url = settings.AUTH_API_LOGIN_URL
         payload = {"email": username, "password": password}
-        response = requests.post(url, data=json.dumps(payload))
+        try:
+            response = requests.post(url, data=json.dumps(payload))
+        except Exception as e:
+            print(f"==> {e}")
+            return None
         if response.status_code != http.HTTPStatus.OK:
             return None
         data = response.json()
