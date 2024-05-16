@@ -1,0 +1,83 @@
+@startuml
+'https://plantuml.com/component-diagram
+!theme vibrant
+skinparam componentStyle uml2
+
+header %date("dd MMMM YYYY")
+title Movies
+
+package Loader {
+  [Loader.service]
+}
+package AdminPanel {
+  [admin]
+}
+
+package ETL {
+  [movies] -down--> [ETL.service]
+  [genres] -down--> [ETL.service]
+  [persons] -down--> [ETL.service]
+  [ETL.service]
+}
+
+package AsyncAPI {
+  database Redis <<cache>> as api_cache
+  [API.service] <..right.. [api]
+  [API.service] -down-> api_cache
+}
+
+AuthAPI --[hidden]right-- AsyncAPI
+
+package AuthAPI {
+  [Auth.api] --> [auth]
+  [Auth.api] --> [oauth]
+  [Auth.api] .right..> [jaeger]
+  database PostgreSQL as db_auth
+  database Redis  <<refresh token>> as refresh_token
+  [auth] --> db_auth
+  [auth] --> refresh_token
+}
+
+package UGC {
+  [UGC.api] --> [UGC.service]
+  [Broker] <<Kafka>>
+  [UGC.service] --> [Broker]
+  [UGC.ETL] -up-> [Broker]
+}
+
+database SQLite
+database PostgreSQL as db_admin
+database Elasticsearch
+cloud {
+  [Google]
+  [Yandex]
+}
+cloud {
+  Client <<Frontend>>
+}
+cloud {
+  [JaegerUI]
+}
+cloud {
+  database ClickHouse
+}
+
+SQLite <.. [Loader.service]
+[Loader.service] -down--> db_admin
+[admin] -left--> db_admin
+
+[ETL.service] .right.> db_admin
+
+[ETL.service] -down-> Elasticsearch
+[API.service] -up-> Elasticsearch
+
+[oauth] ---> [Google]
+[oauth] ---> [Yandex]
+[jaeger] -up-> [JaegerUI]
+
+[UGC.ETL] --> ClickHouse
+
+Client --> [api]
+Client -right-> [Auth.api]
+Client --> [UGC.api]
+@enduml
