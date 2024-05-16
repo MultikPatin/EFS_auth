@@ -1,0 +1,30 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+!theme vibrant
+skinparam componentStyle uml2
+
+header %date("dd MMMM YYYY")
+title Movies UGC Component
+
+
+actor User
+cloud {
+  [moviesUI]
+}
+package UGC {
+  [EventHandler]
+  component Broker{
+    database store_broker
+  }
+  [EventHandler] --> store_broker: 3. Сохраняет событие
+  store_broker <-- [ETL]: 4. Читает событие
+}
+cloud {
+  database ClickHouse
+}
+
+User --> [moviesUI]: 1. Отслеживает событие
+[moviesUI] -right-> [EventHandler]: 2. Обрабатывает событие
+[ETL] -right-> ClickHouse: 5. Отправляет событие
+@enduml
