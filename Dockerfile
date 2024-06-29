@@ -18,7 +18,7 @@ RUN python -m pip install --no-cache-dir poetry==1.7.1 \
 COPY ./${APP_DIR} ./${APP_DIR}
 COPY ./src/core/cache ./src/core/cache
 COPY ./src/core/configs ./src/core/configs
-COPY ./src/core/db ./src/core/db
+COPY src/db ./src/core/db
 COPY ./src/core/utils ./src/core/utils
 
 RUN chmod +x ${APP_DIR}/entrypoint.sh

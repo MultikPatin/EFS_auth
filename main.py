@@ -4,13 +4,15 @@ from typing import Any
 
 import uvicorn
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-from fastapi import FastAPI, Request, status
-from fastapi.responses import ORJSONResponse
+from fastapi import FastAPI
+
+# from fastapi import FastAPI, Request, status
+# from fastapi.responses import ORJSONResponse
 from fastapi_limiter import FastAPILimiter
 from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
 
-from src.auth.cache import redis
+from src.cache import redis
 from src.auth.core.config import PostgresAuthConnect, settings
 from src.auth.core.logger import LOGGING
 from src.auth.endpoints.v1 import (
@@ -22,11 +24,9 @@ from src.auth.endpoints.v1 import (
     users_additional,
 )
 from src.auth.oauth_clients import google
-from src.auth.utils.startup import StartUpService
-from src.core.db.clients.postgres import PostgresDatabase
-from src.core.utils.logger import create_logger
-
-# test
+from src.utils.startup import StartUpService
+from src.auth.db.clients.postgres import PostgresDatabase
+from src.auth.utils.logger import create_logger
 
 
 @asynccontextmanager
@@ -62,16 +62,16 @@ app = FastAPI(
 )
 
 
-@app.middleware("http")
-async def check_request_id(request: Request, call_next):
-    request_id = request.headers.get("X-Request-Id")
-    if not request_id:
-        return ORJSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": "X-Request-Id is required"},
-        )
-    response = await call_next(request)
-    return response
+# @app.middleware("http")
+# async def check_request_id(request: Request, call_next):
+#     request_id = request.headers.get("X-Request-Id")
+#     if not request_id:
+#         return ORJSONResponse(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             content={"detail": "X-Request-Id is required"},
+#         )
+#     response = await call_next(request)
+#     return response
 
 
 app.add_middleware(
