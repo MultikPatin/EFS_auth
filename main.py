@@ -26,6 +26,8 @@ from src.auth.utils.startup import StartUpService
 from src.core.db.clients.postgres import PostgresDatabase
 from src.core.utils.logger import create_logger
 
+# test
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
