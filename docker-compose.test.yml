@@ -50,7 +50,7 @@ services:
 
   auth:
     build:
-      dockerfile: src/auth/Dockerfile
+      dockerfile: Dockerfile
     container_name: ${API_HOST}
     restart: always
     environment:
@@ -69,7 +69,7 @@ services:
 
   auth_tests:
     build:
-      dockerfile: tests/auth/Dockerfile
+      dockerfile: tests/Dockerfile
     container_name: auth_tests
     restart: no
     environment:
