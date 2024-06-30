@@ -12,7 +12,13 @@ from src.configs.token import TokenSettings
 
 from src.utils.settings import EnvSettings, FastApiSettings
 
-__all__ = ["settings", "LOGGING", "PostgresSettings", "StartUpSettings"]
+__all__ = [
+    "settings",
+    "LOGGING",
+    "PostgresSettings",
+    "StartUpSettings",
+    "Oauth2GoogleSettings",
+]
 
 logging_config.dictConfig(LOGGING)
 

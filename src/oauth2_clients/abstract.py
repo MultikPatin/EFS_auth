@@ -10,7 +10,7 @@ class AbstractModelOauth2Client(ABC):
     """
 
     @abstractmethod
-    async def create_authorization_url(self) -> None:
+    async def create_authorization_url(self) -> str:
         """
         Generate url for oauth authorization.
 

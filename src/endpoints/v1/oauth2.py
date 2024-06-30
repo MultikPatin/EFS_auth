@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import RedirectResponse
 from fastapi_limiter.depends import RateLimiter
 
 from src.models.api.base import StringRepresent
@@ -37,7 +37,6 @@ async def oauth_google_login(
 )
 async def google_auth(
     request: Request,
-    response: Response,
     oauth2_service: OAuth2Service = Depends(get_oauth2_service),
 ) -> StringRepresent:
     """User authentication in the google auth service
@@ -47,9 +46,12 @@ async def google_auth(
     Returns:
     - **StringRepresent**: Status code with message "The google login was completed successfully"
     """
-    result = await oauth2_service.auth_via_google(request, response)
-    user_data = await oauth2_service.checkin_oauth_user(result)
-    await oauth2_service.login(request, user_data)
+    await oauth2_service.login(
+        request,
+        await oauth2_service.checkin_oauth_user(
+            await oauth2_service.auth_via_google(request)
+        ),
+    )
     return StringRepresent(
         code=HTTPStatus.OK,
         details="The google login was completed successfully",

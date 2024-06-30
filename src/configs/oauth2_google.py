@@ -21,7 +21,7 @@ class Oauth2GoogleSettings(EnvSettings):
     state: SecretStr = Field(..., alias="OAUTH2_GOOGLE_STATE")
 
     @property
-    def config(self) -> dict[str, Any]:
+    def config_dict(self) -> dict[str, Any]:
         file_name = self.config_url.split("/")[2]
         file_path = f"{BASE_DIR}/src/configs/{file_name}"
         urlretrieve(self.config_url, file_path)
