@@ -6,10 +6,10 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from src.auth.db.entities import Entity
+from src.db.entities import Entity
 
 if TYPE_CHECKING:
-    pass
+    from src.db.entities import Role, LoginHistory, SocialAccount
 
 
 class User(Entity):

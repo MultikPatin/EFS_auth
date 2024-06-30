@@ -3,12 +3,13 @@ from logging import Logger
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.jose import JWTClaims, jwt
 from authlib.oidc.core import CodeIDToken
+from authlib.oauth2.auth import OAuth2Token
 
 from src.auth.core.config import settings
-from src.auth.oauth_clients.abstract import AbstractModelOauthClient
+from src.oauth2_clients.abstract import AbstractModelOauth2Client
 
 
-class OauthGoogle(AbstractModelOauthClient):
+class OauthGoogle(AbstractModelOauth2Client):
     """
     Клиент для работы api с Google oauth.
 
@@ -26,9 +27,7 @@ class OauthGoogle(AbstractModelOauthClient):
         self.__logger = logger
         self.__config = settings.google_config
 
-    async def create_authorization_url(
-        self,
-    ) -> str:
+    async def create_authorization_url(self) -> str:
         """
         Создать url для авторизации Google.
 
@@ -44,7 +43,9 @@ class OauthGoogle(AbstractModelOauthClient):
         valid_authorization_url = authorization_url + "&access_type=offline"
         return valid_authorization_url
 
-    async def fetch_token(self, authorization_response: str) -> dict:
+    async def fetch_token(
+        self, authorization_response: str
+    ) -> dict[str, str] | OAuth2Token:
         """
         Получить токены из Google response url.
 

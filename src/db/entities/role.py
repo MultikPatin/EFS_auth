@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.auth.db.entities import Entity
+from src.db.entities import Entity
 
 if TYPE_CHECKING:
-    from src.auth.db.entities import User
+    from src.db.entities import User
 
 
 class Role(Entity):

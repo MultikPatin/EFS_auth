@@ -9,24 +9,25 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import Response
 from werkzeug.security import generate_password_hash
 
-from src.cache import RedisCache, get_redis
-from src.auth.core.config import settings
-from src.auth.models.api.v1.login_history import RequestLoginHistory
-from src.auth.models.api.v1.social_account import RequestSocialAccount
-from src.auth.models.api.v1.users import RequestUserCreate
-from src.auth.models.db.token import UserClaims
-from src.auth.models.db.user import UserDB
-from src.auth.oauth_clients.google import OauthGoogle, get_google
-from src.auth.utils.tokens import TokenUtils, get_token
-from src.auth.db.repositories import (
+from src.cache.redis import RedisCache, get_redis
+from src.configs import settings
+from src.models.api.v1.login_history import RequestLoginHistory
+from src.models.api.v1.social_account import RequestSocialAccount
+from src.models.api.v1.users import RequestUserCreate
+from src.models.db.token import UserClaims
+from src.models.db.user import UserDB
+from src.oauth2_clients.google import OauthGoogle, get_google
+from src.utils.tokens import TokenUtils, get_token
+
+from src.db.repositories import (
     LoginHistoryRepository,
     get_login_history_repository,
 )
-from src.auth.db.repositories import (
+from src.db.repositories import (
     SocialAccountRepository,
     get_social_account,
 )
-from src.auth.db.repositories import UserRepository, get_user_repository
+from src.db.repositories import UserRepository, get_user_repository
 
 auth_dep = AuthJWTBearer()
 

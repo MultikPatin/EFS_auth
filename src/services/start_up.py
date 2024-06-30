@@ -11,7 +11,7 @@ from src.db.entities import Role, User
 
 class StartUpService:
     def __init__(self, database: PostgresDatabase, settings: StartUpSettings):
-        self._database = database
+        self.__database = database
         self.__settings = settings
 
     async def create_empty_role(self) -> None:
@@ -41,25 +41,25 @@ class StartUpService:
         )
 
     async def get_uuid_by_name(self, name: str) -> UUID | None:
-        async with self._database.get_session() as session:
+        async with self.__database.get_session() as session:
             db_obj = await session.execute(select(Role.uuid).where(Role.name == name))
             obj_uuid = db_obj.scalars().first()
             return obj_uuid
 
     async def get_uuid_by_email(self, email: str) -> UUID | None:
-        async with self._database.get_session() as session:
+        async with self.__database.get_session() as session:
             db_obj = await session.execute(select(User.uuid).where(User.email == email))
             obj_uuid = db_obj.scalars().first()
             return obj_uuid
 
     async def create_role(self, instance: RequestRoleCreate) -> None:
-        async with self._database.get_session() as session:
+        async with self.__database.get_session() as session:
             db_obj = Role(**instance.dict())
             session.add(db_obj)
             await session.commit()
 
     async def create_user(self, instance: RequestUserCreate) -> None:
-        async with self._database.get_session() as session:
+        async with self.__database.get_session() as session:
             role_uuid = await self.get_uuid_by_name(self.__settings.empty_role_name)
             instance_dict = instance.dict()
             instance_dict["is_superuser"] = True
@@ -70,7 +70,7 @@ class StartUpService:
 
     async def create_partition(self) -> None:
         """creating partition by login_history"""
-        async with self._database.get_session() as session:
+        async with self.__database.get_session() as session:
             await session.execute(
                 text(
                     """CREATE SCHEMA IF NOT EXISTS partman;

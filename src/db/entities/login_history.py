@@ -4,10 +4,10 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.auth.db.entities import Entity
+from src.db.entities import Entity
 
 if TYPE_CHECKING:
-    pass
+    from src.db.entities import User
 
 
 class LoginHistory(Entity):

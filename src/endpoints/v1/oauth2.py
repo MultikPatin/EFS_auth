@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse, Response
 from fastapi_limiter.depends import RateLimiter
 
-from src.auth.models.api.base import StringRepresent
-from src.auth.services.google_oauth2 import OAuth2Service, get_oauth2_service
+from src.models.api.base import StringRepresent
+from src.services.google_oauth2 import OAuth2Service, get_oauth2_service
 
 router = APIRouter()
 
