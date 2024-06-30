@@ -1,3 +1,5 @@
+import logging
+
 from uuid import UUID
 
 from sqlalchemy import select, text
@@ -7,6 +9,8 @@ from src.models.api.v1.roles import RequestRoleCreate
 from src.models.api.v1.users import RequestUserCreate
 from src.db.clients.postgres import PostgresDatabase
 from src.db.entities import Role, User
+
+logger = logging.getLogger("StartUpService")
 
 
 class StartUpService:
@@ -18,19 +22,20 @@ class StartUpService:
         role_uuid = await self.get_uuid_by_name(self.__settings.empty_role_name)
         if role_uuid:
             return
-
+        logger.info("Role with name %s already exist", self.__settings.empty_role_name)
         await self.create_role(
             RequestRoleCreate(
                 name=self.__settings.empty_role_name,
                 description=self.__settings.empty_role_description,
             )
         )
+        logger.info("Created empty role with name %s", self.__settings.empty_role_name)
 
     async def create_admin_user(self) -> None:
         user_uuid = await self.get_uuid_by_email(self.__settings.admin_email)
         if user_uuid:
             return
-
+        logger.info("User with email %s already exist", self.__settings.admin_email)
         await self.create_user(
             RequestUserCreate(
                 email=self.__settings.admin_email,
@@ -39,6 +44,7 @@ class StartUpService:
                 last_name=None,
             )
         )
+        logger.info("Created admin user with email %s", self.__settings.admin_email)
 
     async def get_uuid_by_name(self, name: str) -> UUID | None:
         async with self.__database.get_session() as session:

@@ -9,7 +9,7 @@ from fastapi.responses import Response
 from src.cache import RedisCache, get_redis
 from src.auth.core.config import settings
 from src.auth.models.db.token import UserClaims
-from src.auth.oauth_clients.google import OauthGoogle, get_google
+from src.oauth2_clients.google import Oauth2GoogleClient, get_oauth2_google_client
 from src.services.base_oauth2 import BaseService
 from src.auth.utils.tokens import TokenUtils, get_token
 from src.auth.db.repositories import (
@@ -29,7 +29,7 @@ class OAuth2Service(BaseService):
     def __init__(
         self,
         cache: RedisCache,
-        google_oauth_client: OauthGoogle,
+        google_oauth2_client: Oauth2GoogleClient,
         user_repository: UserRepository,
         history_repository: LoginHistoryRepository,
         social_account_repository: SocialAccountRepository,
@@ -44,10 +44,10 @@ class OAuth2Service(BaseService):
             authorize,
             token,
         )
-        self._google_oauth_client = google_oauth_client
+        self._google_oauth2_client = google_oauth2_client
 
     async def get_google_authorization_url(self) -> str:
-        return await self._google_oauth_client.create_authorization_url()
+        return await self._google_oauth2_client.create_authorization_url()
 
     async def auth_via_google(
         self, request: Request, response: Response
@@ -62,10 +62,10 @@ class OAuth2Service(BaseService):
             )
 
         authorization_response = str(request.url)
-        response = await self._google_oauth_client.fetch_token(authorization_response)
+        response = await self._google_oauth2_client.fetch_token(authorization_response)
 
         id_token = response.get("id_token")
-        claims = await self._google_oauth_client.get_claims(id_token)
+        claims = await self._google_oauth2_client.get_claims(id_token)
 
         return await self.check_social_account(claims)
 
@@ -73,7 +73,7 @@ class OAuth2Service(BaseService):
 @lru_cache
 def get_oauth2_service(
     cache: RedisCache = Depends(get_redis),
-    google_oauth_client: OauthGoogle = Depends(get_google),
+    google_oauth2_client: Oauth2GoogleClient = Depends(get_oauth2_google_client),
     user_repository: UserRepository = Depends(get_user_repository),
     history_repository: LoginHistoryRepository = Depends(get_login_history_repository),
     social_account_repository: SocialAccountRepository = Depends(get_social_account),
@@ -82,7 +82,7 @@ def get_oauth2_service(
 ) -> OAuth2Service:
     return OAuth2Service(
         cache,
-        google_oauth_client,
+        google_oauth2_client,
         user_repository,
         history_repository,
         social_account_repository,

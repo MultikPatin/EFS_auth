@@ -5,11 +5,11 @@ from authlib.jose import JWTClaims, jwt
 from authlib.oidc.core import CodeIDToken
 from authlib.oauth2.auth import OAuth2Token
 
-from src.auth.core.config import settings
+from src.configs import settings
 from src.oauth2_clients.abstract import AbstractModelOauth2Client
 
 
-class OauthGoogle(AbstractModelOauth2Client):
+class Oauth2GoogleClient(AbstractModelOauth2Client):
     """
     Клиент для работы api с Google oauth.
 
@@ -18,9 +18,6 @@ class OauthGoogle(AbstractModelOauth2Client):
         logger (Logger): объект для записи в журналы
 
     """
-
-    __google: AsyncOAuth2Client
-    __logger: Logger
 
     def __init__(self, google: AsyncOAuth2Client, logger: Logger):
         self.__google = google
@@ -90,8 +87,8 @@ class OauthGoogle(AbstractModelOauth2Client):
         return claims
 
 
-google: OauthGoogle | None = None
+oauth2_google_client: Oauth2GoogleClient | None = None
 
 
-async def get_google() -> OauthGoogle | None:
-    return google
+async def get_oauth2_google_client() -> Oauth2GoogleClient | None:
+    return oauth2_google_client
