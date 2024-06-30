@@ -1,13 +1,15 @@
 from pydantic import SecretStr
+from pydantic.fields import Field
 from sqlalchemy import URL
 
-from src.auth.configs.base import ServiceSettings
+from src.configs.utils import ServiceSettings
 
 
-class SQLAlchemyConnectMixin(ServiceSettings):
+class SQLAlchemyConnection(ServiceSettings):
     database: str
     user: str
     password: SecretStr
+    sqlalchemy_echo: bool = Field(default=True)
 
     @property
     def postgres_connection_url(self) -> URL:

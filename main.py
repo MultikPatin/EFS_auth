@@ -13,7 +13,8 @@ from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.cache import redis
-from src.auth.core.config import PostgresAuthConnect, settings
+from src.configs.app import settings
+from src.auth.core.config import PostgresAuthConnect,
 from src.auth.core.logger import LOGGING
 from src.auth.endpoints.v1 import (
     oauth2,

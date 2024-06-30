@@ -4,7 +4,7 @@ from typing import Any
 from uuid import UUID
 from redis.asyncio import Redis
 
-from src.core.config import settings
+from src.configs.config import settings
 from src.cache.abstract import AbstractCache
 
 

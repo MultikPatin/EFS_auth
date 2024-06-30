@@ -3,23 +3,6 @@ from uuid import UUID
 
 
 class AbstractCache(ABC):
-    @staticmethod
-    @abstractmethod
-    def _build_key(user_uuid: UUID, token: bytes | str) -> str:
-        """
-        Build a key for a specific user based on their UUID and a token.
-
-        Args:
-            user_uuid (str): The UUID of the user.
-            token (bytes|str): The token to be used in the key generation.
-                It can be either a string or a bytes object.
-
-        Returns:
-            The built cache key.
-        """
-
-        raise NotImplementedError
-
     @abstractmethod
     async def set_token(
         self,

@@ -1,14 +1,8 @@
 from pydantic import Field
 
-from src.auth.configs.base import ServiceSettings
+from src.configs.authjwt import AuthJWTSettings
 
 
-class RedisSettings(ServiceSettings):
-    """
-    This class is used to store the REDIS connection settings.
-    """
-
-    host: str = Field(..., alias="REDIS_HOST")
-    port: int = Field(..., alias="REDIS_PORT")
-    host_local: str = Field(..., alias="REDIS_HOST_LOCAL")
-    port_local: int = Field(..., alias="REDIS_PORT_LOCAL")
+class TokenSettings(AuthJWTSettings):
+    expire_time_in_minutes: int = Field(..., alias="TOKEN_EXPIRE_TIME_IN_MINUTES")
+    user_max_sessions: int = Field(..., alias="USER_MAX_SESSIONS")
