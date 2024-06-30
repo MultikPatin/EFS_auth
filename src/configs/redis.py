@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import Field
 
-from src.configs.utils import ServiceSettings
+from src.utils.settings import ServiceSettings
 
 
 class RedisSettings(ServiceSettings):

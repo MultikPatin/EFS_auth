@@ -2,7 +2,7 @@ from pydantic import SecretStr
 from pydantic.fields import Field
 from sqlalchemy import URL
 
-from src.configs.utils import ServiceSettings
+from src.utils.settings import ServiceSettings
 
 
 class SQLAlchemyConnection(ServiceSettings):

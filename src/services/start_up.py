@@ -2,38 +2,43 @@ from uuid import UUID
 
 from sqlalchemy import select, text
 
-from src.auth.core.config import settings
-from src.auth.models.api.v1.roles import RequestRoleCreate
-from src.auth.models.api.v1.users import RequestUserCreate
-from src.auth.db.clients.postgres import PostgresDatabase
-from src.auth.db.entities import Role, User
+from src.configs import StartUpSettings
+from src.models.api.v1.roles import RequestRoleCreate
+from src.models.api.v1.users import RequestUserCreate
+from src.db.clients.postgres import PostgresDatabase
+from src.db.entities import Role, User
 
 
 class StartUpService:
-    def __init__(self, database: PostgresDatabase):
+    def __init__(self, database: PostgresDatabase, settings: StartUpSettings):
         self._database = database
+        self.__settings = settings
 
     async def create_empty_role(self) -> None:
-        body = RequestRoleCreate(
-            name=settings.empty_role_name,
-            description=settings.empty_role_description,
-        )
-        role_uuid = await self.get_uuid_by_name(body.name)
-        if role_uuid is not None:
+        role_uuid = await self.get_uuid_by_name(self.__settings.empty_role_name)
+        if role_uuid:
             return
-        await self.create_role(body)
+
+        await self.create_role(
+            RequestRoleCreate(
+                name=self.__settings.empty_role_name,
+                description=self.__settings.empty_role_description,
+            )
+        )
 
     async def create_admin_user(self) -> None:
-        body = RequestUserCreate(
-            email=settings.admin_email,
-            password=settings.admin_password.get_secret_value(),
-            first_name=None,
-            last_name=None,
-        )
-        user_uuid = await self.get_uuid_by_email(body.email)
-        if user_uuid is not None:
+        user_uuid = await self.get_uuid_by_email(self.__settings.admin_email)
+        if user_uuid:
             return
-        await self.create_user(body)
+
+        await self.create_user(
+            RequestUserCreate(
+                email=self.__settings.admin_email,
+                password=self.__settings.admin_password,
+                first_name=None,
+                last_name=None,
+            )
+        )
 
     async def get_uuid_by_name(self, name: str) -> UUID | None:
         async with self._database.get_session() as session:
@@ -55,7 +60,7 @@ class StartUpService:
 
     async def create_user(self, instance: RequestUserCreate) -> None:
         async with self._database.get_session() as session:
-            role_uuid = await self.get_uuid_by_name(settings.empty_role_name)
+            role_uuid = await self.get_uuid_by_name(self.__settings.empty_role_name)
             instance_dict = instance.dict()
             instance_dict["is_superuser"] = True
             instance_dict["role_uuid"] = role_uuid

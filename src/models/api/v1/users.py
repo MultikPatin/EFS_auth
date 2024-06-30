@@ -2,13 +2,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 
-from src.auth.models.api.base import (
+from src.models.api.base import (
     LoginMixin,
     TimeMixin,
     UUIDMixin,
 )
-from src.auth.models.api.v1.roles import ResponseRoleShort
-from src.auth.utils.pagination import PaginatedMixin
+from src.models.api.v1.roles import ResponseRoleShort
+from src.utils.pagination import PaginatedMixin
 
 
 class RequestUserUpdate(BaseModel):

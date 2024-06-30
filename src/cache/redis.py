@@ -4,7 +4,7 @@ from typing import Any
 from uuid import UUID
 from redis.asyncio import Redis
 
-from src.configs.config import settings
+from src.configs.app import settings
 from src.cache.abstract import AbstractCache
 
 
@@ -42,7 +42,7 @@ class RedisCache(AbstractCache):
         keys = []
         async for key in self._redis.scan_iter(f"{str(user_uuid)}:*", 10000):
             keys.append(key)
-            if len(keys) == settings.user_max_sessions:
+            if len(keys) == settings.token.user_max_sessions:
                 break
         return keys
 
@@ -75,14 +75,13 @@ class RedisCache(AbstractCache):
             user_uuid (UUID): The key to use for caching the token.
             token(str | bytes): str: The token.
         """
-        expire_time = timedelta(minutes=settings.token_expire_time_in_minutes)
         key = self._build_key(user_uuid, token)
 
         try:
             await self._redis.set(
                 name=key,
                 value=token,
-                ex=expire_time,
+                ex=timedelta(minutes=settings.token.expire_time_in_minutes),
             )
         except Exception as error:
             self._logger.error(

@@ -13,10 +13,10 @@ from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.cache import redis
-from src.configs.app import settings
-from src.auth.core.config import PostgresAuthConnect,
-from src.auth.core.logger import LOGGING
-from src.auth.endpoints.v1 import (
+from src.configs import settings, LOGGING, PostgresSettings
+
+# from src.configs.logger import LOGGING
+from src.endpoints.v1 import (
     oauth2,
     permissions,
     roles,
@@ -25,15 +25,15 @@ from src.auth.endpoints.v1 import (
     users_additional,
 )
 from src.auth.oauth_clients import google
-from src.utils.startup import StartUpService
-from src.auth.db.clients.postgres import PostgresDatabase
+from src.services.start_up import StartUpService
+from src.db.clients.postgres import PostgresDatabase
 from src.auth.utils.logger import create_logger
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
-        PostgresDatabase(PostgresAuthConnect()),
+        database=PostgresDatabase(PostgresSettings()), settings=settings.start_up
     )
     await startup_methods.create_partition()
     await startup_methods.create_empty_role()
@@ -55,13 +55,12 @@ async def lifespan(app: FastAPI) -> Any:
 
 
 app = FastAPI(
-    title=settings.name,
-    description=settings.description,
-    docs_url=settings.docs_url,
-    openapi_url=settings.openapi_url,
+    title=settings.app.name,
+    description=settings.app.description,
+    docs_url=settings.app.docs_url,
+    openapi_url=settings.app.openapi_url,
     lifespan=lifespan,
 )
-
 
 # @app.middleware("http")
 # async def check_request_id(request: Request, call_next):
@@ -77,7 +76,7 @@ app = FastAPI(
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=settings.google.google_state.get_secret_value(),
+    secret_key=settings.oauth2.google.state.get_secret_value(),
 )
 
 app.include_router(
@@ -98,8 +97,8 @@ app.include_router(oauth2.router, prefix="/auth/v1/oauth2", tags=["oauth2"])
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host=settings.host,
-        port=settings.port,
+        host=settings.app.host,
+        port=settings.app.port,
         log_config=LOGGING,
         log_level=logging.DEBUG,
     )

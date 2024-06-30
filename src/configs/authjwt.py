@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from src.configs.utils import EnvSettings
+from src.utils.settings import EnvSettings
 
 
 class AuthJWTSettings(EnvSettings):
