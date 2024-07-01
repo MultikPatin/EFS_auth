@@ -6,67 +6,58 @@ from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from fastapi import Depends
 
 from src.cache.redis import RedisCache, get_redis
-from src.configs import settings
+from src.configs import TokenSettings
 from src.models.db.token import CacheTokens, UserClaims
-from src.db.repositories import (
-    LoginHistoryRepository,
-    get_login_history_repository,
-)
-from src.db.repositories import UserRepository, get_user_repository
-
-auth_dep = AuthJWTBearer()
 
 
 class TokenUtils:
     def __init__(
         self,
         cache: RedisCache,
-        user_repository: UserRepository,
-        history_repository: LoginHistoryRepository,
         authorize: AuthJWT,
+        settings: TokenSettings,
     ):
-        self._cache = cache
-        self._user_repository = user_repository
-        self._history_repository = history_repository
-        self._authorize = authorize
+        self.__cache = cache
+        self.__authorize = authorize
+        self.__settings = settings
 
-    async def delete_oldest_token(self, user_uuid: str):
-        current_cache_tokens = await self._cache.get_tokens(user_uuid)
-        if current_cache_tokens is not None and (
-            len(current_cache_tokens) >= settings.user_max_sessions
-        ):
+    async def delete_oldest_token_if_necessary(self, user_uuid: str) -> None:
+        tokens = await self.__cache.get_tokens(user_uuid)
+        if not tokens:
+            return
+        if len(tokens) >= self.__settings.user_max_sessions:
             oldest = datetime.max
-            oldest_token = current_cache_tokens[0]
-            for token in current_cache_tokens:
-                user_claims = await self._authorize.get_raw_jwt(token)
+            oldest_token = tokens[0]
+            for token in tokens:
+                user_claims = await self.__authorize.get_raw_jwt(token)
                 token_end = datetime.fromtimestamp(user_claims.get("exp"))
                 if oldest > token_end:
                     oldest = token_end
                     oldest_token = token
 
-            await self._cache.delete_tokens(user_uuid, oldest_token)
+            await self.__cache.delete_tokens(user_uuid, oldest_token)
 
     async def unset_tokens_from_cookies(
         self, access: bool = False, refresh: bool = False
     ) -> None:
         if access:
-            await self._authorize.unset_access_cookies()
+            await self.__authorize.unset_access_cookies()
         if refresh:
-            await self._authorize.unset_refresh_cookies()
+            await self.__authorize.unset_refresh_cookies()
 
     async def set_tokens_to_cookies(self, tokens: CacheTokens) -> None:
         if tokens.access:
-            await self._authorize.set_access_cookies(tokens.access)
+            await self.__authorize.set_access_cookies(tokens.access)
         if tokens.refresh:
-            await self._authorize.set_refresh_cookies(tokens.refresh)
+            await self.__authorize.set_refresh_cookies(tokens.refresh)
 
     async def create_tokens(self, user_claims: UserClaims) -> CacheTokens:
-        new_access_token = await self._authorize.create_access_token(
+        new_access_token = await self.__authorize.create_access_token(
             subject=user_claims.user_uuid, user_claims=user_claims.model_dump()
         )
-        new_refresh_token = await self._authorize.create_refresh_token(
+        new_refresh_token = await self.__authorize.create_refresh_token(
             subject=user_claims.user_uuid,
-            expires_time=timedelta(settings.token_expire_time),
+            expires_time=timedelta(self.__settings.expire_time_in_minutes),
             user_claims=user_claims.model_dump(),
         )
         return CacheTokens(access=new_access_token, refresh=new_refresh_token)
@@ -74,15 +65,15 @@ class TokenUtils:
     async def base_login(self, user_claims: UserClaims) -> None:
         tokens = await self.create_tokens(user_claims)
         await self.set_tokens_to_cookies(tokens)
-        await self.delete_oldest_token(user_claims.user_uuid)
-        await self._cache.set_token(user_claims.user_uuid, tokens.refresh)
+        await self.delete_oldest_token_if_necessary(user_claims.user_uuid)
+        await self.__cache.set_token(user_claims.user_uuid, tokens.refresh)
+        # TODO Нотификация с логирование пользователя
 
 
 @lru_cache
 def get_token(
     cache: RedisCache = Depends(get_redis),
-    user_repository: UserRepository = Depends(get_user_repository),
-    history_repository: LoginHistoryRepository = Depends(get_login_history_repository),
-    authorize: AuthJWT = Depends(auth_dep),
+    authorize: AuthJWT = AuthJWTBearer(),
+    settings: TokenSettings = TokenSettings(),
 ) -> TokenUtils:
-    return TokenUtils(cache, user_repository, history_repository, authorize)
+    return TokenUtils(cache, authorize, settings)

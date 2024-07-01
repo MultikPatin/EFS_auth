@@ -18,6 +18,7 @@ __all__ = [
     "PostgresSettings",
     "StartUpSettings",
     "Oauth2GoogleSettings",
+    "TokenSettings",
 ]
 
 logging_config.dictConfig(LOGGING)

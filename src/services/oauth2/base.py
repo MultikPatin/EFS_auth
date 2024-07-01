@@ -57,6 +57,7 @@ class OAuth2BaseService:
                     last_name=claims.get("family_name"),
                 )
             )
+            # TODO Нотификация с просьбой сменить пароль
             await self._social_account_repository.create(
                 RequestSocialAccount(
                     user_uuid=user.uuid,
