@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src.auth.models.api.v1.social_account import RequestSocialAccount
 from src.auth.db.clients.postgres import PostgresDatabase, get_postgres_auth_db
-from src.auth.db.entities import SocialAccount
+from src.db.entities import SocialAccount
 from src.auth.db.repositories.base import (
     InitRepository,
 )

@@ -6,20 +6,20 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from src.auth.core.config import settings
-from src.auth.models.api.v1.users import RequestUserCreate, RequestUserUpdate
-from src.auth.models.api.v1.users_additional import RequestPasswordChange
-from src.auth.db.clients.postgres import (
+from src.configs import settings
+from src.models.api.v1.users import RequestUserCreate, RequestUserUpdate
+from src.models.api.v1.users_additional import RequestPasswordChange
+from src.db.clients.postgres import (
     PostgresDatabase,
     get_postgres_auth_db,
 )
-from src.auth.db.entities import User
-from src.auth.db.repositories.base import (
+from src.db.entities import User
+from src.db.repositories.base import (
     CountRepositoryMixin,
     EmailFieldRepositoryMixin,
     PostgresRepository,
 )
-from src.auth.db.repositories.role import RoleRepository, get_role_repository
+from src.db.repositories.role import RoleRepository, get_role_repository
 
 
 class UserRepository(

@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta
 from functools import lru_cache
-from uuid import UUID
 
 from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from fastapi import Depends
 
 from src.cache.redis import RedisCache, get_redis
-from src.configs.config import settings
+from src.configs import settings
 from src.models.db.token import CacheTokens, UserClaims
 from src.db.repositories import (
     LoginHistoryRepository,
@@ -31,7 +30,7 @@ class TokenUtils:
         self._history_repository = history_repository
         self._authorize = authorize
 
-    async def delete_oldest_token(self, user_uuid: UUID):
+    async def delete_oldest_token(self, user_uuid: str):
         current_cache_tokens = await self._cache.get_tokens(user_uuid)
         if current_cache_tokens is not None and (
             len(current_cache_tokens) >= settings.user_max_sessions
@@ -71,6 +70,12 @@ class TokenUtils:
             user_claims=user_claims.model_dump(),
         )
         return CacheTokens(access=new_access_token, refresh=new_refresh_token)
+
+    async def base_login(self, user_claims: UserClaims) -> None:
+        tokens = await self.create_tokens(user_claims)
+        await self.set_tokens_to_cookies(tokens)
+        await self.delete_oldest_token(user_claims.user_uuid)
+        await self._cache.set_token(user_claims.user_uuid, tokens.refresh)
 
 
 @lru_cache

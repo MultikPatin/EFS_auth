@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi_limiter.depends import RateLimiter
 
 from src.models.api.base import StringRepresent
-from src.services.google_oauth2 import OAuth2Service, get_oauth2_service
+from src.services.oauth2.google import OAuth2GoogleService, get_oauth2_google_service
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ router = APIRouter()
     dependencies=[Depends(RateLimiter(times=5, seconds=1))],
 )
 async def oauth_google_login(
-    oauth2_service: OAuth2Service = Depends(get_oauth2_service),
+    oauth2_service: OAuth2GoogleService = Depends(get_oauth2_google_service),
 ) -> RedirectResponse:
     """Endpoint to get to oauth server
 
@@ -37,7 +37,7 @@ async def oauth_google_login(
 )
 async def google_auth(
     request: Request,
-    oauth2_service: OAuth2Service = Depends(get_oauth2_service),
+    oauth2_service: OAuth2GoogleService = Depends(get_oauth2_google_service),
 ) -> StringRepresent:
     """User authentication in the google auth service
 

@@ -1,7 +1,6 @@
 from datetime import timedelta
 from logging import Logger
 from typing import Any
-from uuid import UUID
 from redis.asyncio import Redis
 
 from src.configs.app import settings
@@ -29,25 +28,25 @@ class RedisCache(AbstractCache):
         """
         return await self._redis.ping()
 
-    async def _collect_keys(self, user_uuid: UUID) -> list[str] | None:
+    async def _collect_keys(self, user_uuid: str) -> list[str] | None:
         """
         Collect all the user's refresh_token.
 
         Args:
-            user_uuid (UUID): The user's UUID for searching for keys.
+            user_uuid (str): The user's UUID for searching for keys.
 
         Returns:
             list[str] | None: returns refresh_token if any
         """
         keys = []
-        async for key in self._redis.scan_iter(f"{str(user_uuid)}:*", 10000):
+        async for key in self._redis.scan_iter(f"{user_uuid}:*", 10000):
             keys.append(key)
             if len(keys) == settings.token.user_max_sessions:
                 break
         return keys
 
     @staticmethod
-    def _build_key(user_uuid: UUID, token: bytes | str) -> str:
+    def _build_key(user_uuid: str, token: bytes | str) -> str:
         """
         Build a key for a specific user based on their UUID and a token.
 
@@ -61,11 +60,11 @@ class RedisCache(AbstractCache):
         """
         if isinstance(token, bytes):
             token = str(token, encoding="utf-8")
-        return f"{str(user_uuid)}:{token}"
+        return f"{user_uuid}:{token}"
 
     async def set_token(
         self,
-        user_uuid: UUID,
+        user_uuid: str,
         token: str | bytes,
     ) -> None:
         """
@@ -94,7 +93,7 @@ class RedisCache(AbstractCache):
 
     async def get_tokens(
         self,
-        user_uuid: UUID,
+        user_uuid: str,
     ) -> list[bytes] | None:
         """
         Get tokens from the cache.
@@ -120,21 +119,21 @@ class RedisCache(AbstractCache):
         return values
 
     async def delete_tokens(
-        self, uuid: UUID, token: bytes | str, all_tokens: bool = False
+        self, user_uuid: str, token: bytes | str, all_tokens: bool = False
     ) -> None:
         """
         Delete tokens from the cache.
 
         Args:
-            uuid (UUID): The pattern used for search the tokens to delete; key prefix.
+            user_uuid (str): The pattern used for search the tokens to delete; key prefix.
             token (bytes | str): The parameter to build key to delete.
             all_tokens (bool) The parameter to switch between single and multiply deletion.
 
         """
         if all_tokens:
-            keys = await self._collect_keys(uuid)
+            keys = await self._collect_keys(user_uuid)
         else:
-            keys = [self._build_key(uuid, token)]
+            keys = [self._build_key(user_uuid, token)]
         try:
             await self._redis.delete(*keys)
         except Exception as get_error:
