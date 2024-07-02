@@ -10,7 +10,7 @@ from src.auth.models.api.v1.login_history import RequestLoginHistory
 from src.auth.models.api.v1.tokens import RequestLogin
 from src.auth.models.api.v1.users import ResponseUser
 from src.auth.models.db.token import UserClaims
-from src.auth.utils.tokens import TokenUtils, get_token
+from src.utils.tokens import TokenUtils, get_token_utils
 from src.auth.validators.token import validate_token
 from src.auth.db.repositories import (
     LoginHistoryRepository,
@@ -129,6 +129,6 @@ def get_token_service(
     user_repository: UserRepository = Depends(get_user_repository),
     history_repository: LoginHistoryRepository = Depends(get_login_history_repository),
     authorize: AuthJWT = Depends(auth_dep),
-    token: TokenUtils = Depends(get_token),
+    token: TokenUtils = Depends(get_token_utils),
 ) -> TokenService:
     return TokenService(cache, user_repository, history_repository, authorize, token)

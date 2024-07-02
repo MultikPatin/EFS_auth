@@ -15,7 +15,7 @@ from src.configs import Oauth2GoogleSettings
 from src.models.db.token import UserClaims
 from src.oauth2_clients.google import Oauth2GoogleClient, get_oauth2_google_client
 from src.services.oauth2.base import OAuth2BaseService
-from src.utils.tokens import TokenUtils, get_token
+from src.utils.tokens import TokenUtils, get_token_utils
 from src.db.repositories.login_history import (
     LoginHistoryRepository,
     get_login_history_repository,
@@ -80,7 +80,7 @@ def get_oauth2_google_service(
     history_repository: LoginHistoryRepository = Depends(get_login_history_repository),
     social_account_repository: SocialAccountRepository = Depends(get_social_account),
     authorize: AuthJWT = AuthJWTBearer(),
-    token: TokenUtils = Depends(get_token),
+    token: TokenUtils = Depends(get_token_utils),
     settings: Oauth2GoogleSettings = Oauth2GoogleSettings(),
 ) -> OAuth2GoogleService:
     return OAuth2GoogleService(

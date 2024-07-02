@@ -11,6 +11,7 @@ from src.models.db.token import CacheTokens, UserClaims
 
 
 class TokenUtils:
+    # TODO Сделать doc string
     def __init__(
         self,
         cache: RedisCache,
@@ -22,6 +23,8 @@ class TokenUtils:
         self.__settings = settings
 
     async def delete_oldest_token_if_necessary(self, user_uuid: str) -> None:
+        # TODO Возможно ли лучше?)
+        # TODO Сделать doc string
         tokens = await self.__cache.get_tokens(user_uuid)
         if not tokens:
             return
@@ -40,18 +43,21 @@ class TokenUtils:
     async def unset_tokens_from_cookies(
         self, access: bool = False, refresh: bool = False
     ) -> None:
+        # TODO Сделать doc string
         if access:
             await self.__authorize.unset_access_cookies()
         if refresh:
             await self.__authorize.unset_refresh_cookies()
 
     async def set_tokens_to_cookies(self, tokens: CacheTokens) -> None:
+        # TODO Сделать doc string
         if tokens.access:
             await self.__authorize.set_access_cookies(tokens.access)
         if tokens.refresh:
             await self.__authorize.set_refresh_cookies(tokens.refresh)
 
     async def create_tokens(self, user_claims: UserClaims) -> CacheTokens:
+        # TODO Сделать doc string
         new_access_token = await self.__authorize.create_access_token(
             subject=user_claims.user_uuid, user_claims=user_claims.model_dump()
         )
@@ -63,6 +69,7 @@ class TokenUtils:
         return CacheTokens(access=new_access_token, refresh=new_refresh_token)
 
     async def base_login(self, user_claims: UserClaims) -> None:
+        # TODO Сделать doc string
         tokens = await self.create_tokens(user_claims)
         await self.set_tokens_to_cookies(tokens)
         await self.delete_oldest_token_if_necessary(user_claims.user_uuid)
@@ -71,7 +78,7 @@ class TokenUtils:
 
 
 @lru_cache
-def get_token(
+def get_token_utils(
     cache: RedisCache = Depends(get_redis),
     authorize: AuthJWT = AuthJWTBearer(),
     settings: TokenSettings = TokenSettings(),

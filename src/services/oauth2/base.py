@@ -22,6 +22,7 @@ from src.db.repositories.user import UserRepository
 
 
 class OAuth2BaseService:
+    # TODO Сделать doc string
     def __init__(
         self,
         cache: RedisCache,
@@ -39,6 +40,7 @@ class OAuth2BaseService:
         self._token = token
 
     async def checkin_oauth_user(self, claims: JWTClaims | UUID) -> UserClaims:
+        # TODO Сделать doc string
         if isinstance(claims, UUID):
             user = await self._user_repository.get(claims)
             return self.__get_user_claims(user)
@@ -69,6 +71,8 @@ class OAuth2BaseService:
 
     @staticmethod
     def __get_user_claims(user: User | None) -> UserClaims:
+        # TODO Возможно ли лучше?)
+        # TODO Сделать doc string
         try:
             user_claims = UserClaims(
                 user_uuid=user.uuid,
@@ -79,6 +83,7 @@ class OAuth2BaseService:
         return user_claims
 
     async def login(self, request: Request, user_claims: UserClaims) -> None:
+        # TODO Сделать doc string
         await self._token.base_login(user_claims)
         await self._history_repository.create(
             RequestLoginHistory(
@@ -89,6 +94,7 @@ class OAuth2BaseService:
         )
 
     async def check_social_account(self, claims: JWTClaims) -> JWTClaims | UUID:
+        # TODO Сделать doc string
         user_uuid = await self._social_account_repository.get_by_social_name_id(
             social_name=claims.get("iss"), social_id=claims.get("sub")
         )
