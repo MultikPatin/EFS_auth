@@ -8,9 +8,9 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from src.core.configs.postgres import PostgresAuthSettings
-from src.core.db.entities import Entity
-from src.core.utils.sqlalchemy import SQLAlchemyConnectMixin
+from src.auth.configs.postgres import PostgresAuthSettings
+from src.auth.db.entities import Entity
+from src.auth.utils.sqlalchemy import SQLAlchemyConnectMixin
 
 
 class Settings(PostgresAuthSettings, SQLAlchemyConnectMixin):

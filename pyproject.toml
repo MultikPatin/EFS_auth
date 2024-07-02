@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "auth-sprint-2"
-version = "0.1.0"
+name = "auth-service"
+version = "1.0.0"
 description = ""
 authors = ["Dmitry Patin <multik.patin@yandex.ru>"]
 readme = "README.md"
@@ -8,49 +8,25 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 pydantic-settings = "^2.2.1"
-certifi = "^2024.2.2"
 pydantic = {extras = ["email"], version = "^2.7.0"}
-backoff = { version = "^2.2.1", optional = true }
 fastapi = { version = "^0.110.0", optional = true }
+fastapi-limiter = {version = "^0.1.6", optional = true}
 uvicorn = { version = "^0.29.0", optional = true }
-redis = { version = "^5.0.3", optional = true }
 gunicorn = {version = "^21.2.0", optional = true}
+redis = { version = "^5.0.3", optional = true }
 alembic = {version = "^1.13.1", optional = true}
-sqlalchemy = {version = "2.0.29", extras = ["asyncio"], optional = true}
-asyncpg = {version = "^0.29.0", optional = true}
-werkzeug = {version = "^3.0.2", optional = true}
+sqlalchemy = {extras = ["mypy"], version = "^2.0.31"}
 async-fastapi-jwt-auth = {version = "^0.6.4", optional = true}
-psycopg2-binary = {version = "^2.9.9", optional = true}
-pyjwt = {version = "^2.8.0", optional = true}
-elasticsearch = {extras = ["async"], version = "^8.12.1", optional = true }
-django = { version = "^5.0.1", optional = true }
-django-split-settings = { version = "^1.2.0", optional = true }
-django-debug-toolbar = { version = "^4.3.0", optional = true }
-uwsgi = { version = "^2.0.0", optional = true }
-opentelemetry-api = { version = "^1.24.0", optional = true }
-opentelemetry-sdk = { version = "^1.24.0", optional = true }
-opentelemetry-instrumentation-fastapi = { version = "^0.45b0", optional = true }
-opentelemetry-exporter-jaeger = { version = "^1.21.0", optional = true }
 authlib = {version = "^1.3.0", optional = true}
 itsdangerous = {version = "^2.2.0", optional = true}
-orjson = {version = "^3.10.3", optional = true}
-fastapi-limiter = {version = "^0.1.6", optional = true}
+asyncpg = {version = "^0.29.0", optional = true}
+werkzeug = {version = "^3.0.2", optional = true}
+backoff = { version = "^2.2.1", optional = true }
+psycopg2-binary = {version = "^2.9.9", optional = true}
+pyjwt = {version = "^2.8.0", optional = true}
+
 
 [tool.poetry.extras]
-telemetry = [
-    "opentelemetry-api",
-    "opentelemetry-sdk",
-    "opentelemetry-instrumentation-fastapi",
-    "opentelemetry-exporter-jaeger",
-]
-admin = [
-    "django",
-    "django-split-settings",
-    "django-debug-toolbar",
-    "gunicorn",
-    "psycopg2-binary",
-    "uwsgi",
-]
 auth = [
     "redis",
     "fastapi",
@@ -79,24 +55,6 @@ test = [
     "psycopg2-binary",
     "pyjwt",
 ]
-movies = [
-    "elasticsearch",
-    "redis",
-    "fastapi",
-    "gunicorn",
-    "uvicorn",
-    "pyjwt",
-]
-etl_content = [
-    "backoff",
-    "elasticsearch",
-    "psycopg2-binary",
-    "sqlalchemy",
-]
-etl_permission = [
-    "backoff",
-    "psycopg2-binary",
-]
 
 [tool.poetry.group.dev]
 optional = true
@@ -104,6 +62,7 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.11"
 pre-commit = "^3.6.2"
+mypy = "^1.10.1"
 
 [tool.poetry.group.test]
 optional = true
@@ -117,7 +76,7 @@ aiohttp = "^3.9.3"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.ruff]
+[tool.lint]
 select = [
     "E", # pycodestyle errors
     "W", # pycodestyle warnings
@@ -162,19 +121,31 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
-    "*/settings.py",
-    "*/migrations/",
-    "*/config/components/",
-    "tasks",
+#    "migrations",
 ]
 per-file-ignores = { }
-
 line-length = 80
-
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
 target-version = "py311"
 
 [tool.ruff.format]
 docstring-code-format = true
 docstring-code-line-length = 60
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+explicit_package_bases = true
+no_implicit_reexport = true
+ignore_missing_imports = true
+exclude = [
+    "docs",
+    "migrations",
+    "tests",
+    "static"
+]
