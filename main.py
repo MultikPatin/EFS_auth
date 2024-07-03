@@ -4,16 +4,16 @@ from typing import Any
 
 import uvicorn
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-from fastapi import FastAPI
 
-# from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Depends
+
 # from fastapi.responses import ORJSONResponse
 from fastapi_limiter import FastAPILimiter
 from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.cache import redis
-from src.configs import settings, LOGGING, PostgresSettings
+from src.configs import settings, LOGGING
 
 # from src.configs.logger import LOGGING
 from src.endpoints.v1 import (
@@ -24,16 +24,16 @@ from src.endpoints.v1 import (
     users,
     users_additional,
 )
-from src.auth.oauth_clients import google
+from src.oauth2_clients import google
 from src.services.start_up import StartUpService
-from src.db.clients.postgres import PostgresDatabase
+from src.db.clients.postgres import get_postgres_db
 from src.auth.utils.logger import create_logger
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
-        database=PostgresDatabase(PostgresSettings()), settings=settings.start_up
+        database=Depends(get_postgres_db), settings=settings.start_up
     )
     await startup_methods.create_partition()
     await startup_methods.create_empty_role()
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI) -> Any:
         Redis(**settings.redis.connection_dict),
         logger=create_logger("API RedisCache"),
     )
-    google.google = google.OauthGoogle(
+    google.oauth2_google_client = google.Oauth2GoogleClient(
         AsyncOAuth2Client(**settings.google.settings_dict),
         logger=create_logger("API OAUTH Google"),
     )

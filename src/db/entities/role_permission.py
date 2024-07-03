@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.auth.db.entities import Entity
+from src.db.entities import Entity
 
 
 class RolePermission(Entity):
