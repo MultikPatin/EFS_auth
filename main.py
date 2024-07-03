@@ -5,9 +5,9 @@ from typing import Any
 import uvicorn
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, status
 
-# from fastapi.responses import ORJSONResponse
+from fastapi.responses import ORJSONResponse
 from fastapi_limiter import FastAPILimiter
 from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
@@ -57,16 +57,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# @app.middleware("http")
-# async def check_request_id(request: Request, call_next):
-#     request_id = request.headers.get("X-Request-Id")
-#     if not request_id:
-#         return ORJSONResponse(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             content={"detail": "X-Request-Id is required"},
-#         )
-#     response = await call_next(request)
-#     return response
+
+@app.middleware("http")
+async def check_request_id(request: Request, call_next):
+    request_id = request.headers.get("X-Request-Id")
+    if not request_id:
+        return ORJSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "X-Request-Id is required"},
+        )
+    response = await call_next(request)
+    return response
 
 
 app.add_middleware(
