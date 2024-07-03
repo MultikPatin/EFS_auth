@@ -15,7 +15,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from src.cache import redis
 from src.configs import settings, LOGGING
 
-# from src.configs.logger import LOGGING
 from src.endpoints.v1 import (
     oauth2,
     permissions,
@@ -27,7 +26,6 @@ from src.endpoints.v1 import (
 from src.oauth2_clients import google
 from src.services.start_up import StartUpService
 from src.db.clients.postgres import get_postgres_db
-from src.auth.utils.logger import create_logger
 
 
 @asynccontextmanager
@@ -39,16 +37,13 @@ async def lifespan(app: FastAPI) -> Any:
     await startup_methods.create_empty_role()
     await startup_methods.create_admin_user()
     redis.redis = redis.RedisCache(
-        Redis(**settings.redis.connection_dict),
-        logger=create_logger("API RedisCache"),
+        Redis(**settings.redis.connection_dict), settings=settings.token
     )
     google.oauth2_google_client = google.Oauth2GoogleClient(
-        AsyncOAuth2Client(**settings.google.settings_dict),
-        logger=create_logger("API OAUTH Google"),
+        AsyncOAuth2Client(**settings.oauth2.google.settings_dict),
+        settings=settings.oauth2.google,
     )
-    settings.redis.correct_port()
-    redis_limiter_connection = Redis(**settings.redis.connection_dict)
-    await FastAPILimiter.init(redis_limiter_connection)
+    await FastAPILimiter.init(Redis(**settings.redis.connection_dict))
     yield
     await redis.redis.close()
     await FastAPILimiter.close()

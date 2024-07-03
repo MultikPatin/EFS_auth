@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from src.configs import PostgresSettings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("PostgresDatabase")
 
 
 class PostgresDatabase:

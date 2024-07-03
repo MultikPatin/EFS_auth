@@ -21,6 +21,7 @@ __all__ = [
     "StartUpSettings",
     "Oauth2GoogleSettings",
     "TokenSettings",
+    # "RedisSettings",
 ]
 
 logging_config.dictConfig(LOGGING)
