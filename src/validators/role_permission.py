@@ -1,24 +1,16 @@
-from uuid import UUID
+from fastapi import Depends
 
-from fastapi import Depends, HTTPException
-
-from src.auth.db.repositories.many_to_many import (
+from src.db.repositories.many_to_many.role_pemission import (
     RolePermissionRepository,
     get_role_permission_repository,
 )
+from src.validators import BaseValidator, DuplicateRowValidatorMixin
 
 
-class RolePermissionValidator:
-    def __init__(self, repository: RolePermissionRepository):
-        self._repository = repository
-
-    async def is_duplicate_row(self, role_uuid: UUID, permission_uuid: UUID) -> None:
-        permission_uuid = await self._repository.get(role_uuid, permission_uuid)
-        if permission_uuid is not None:
-            raise HTTPException(
-                status_code=400,
-                detail="An object with that name already exists",
-            )
+class RolePermissionValidator(
+    BaseValidator[RolePermissionRepository], DuplicateRowValidatorMixin
+):
+    pass
 
 
 def get_role_permission_validator(

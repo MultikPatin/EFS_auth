@@ -3,16 +3,15 @@ from uuid import UUID
 
 from fastapi import Depends, Path
 
-from src.auth.validators.base import BaseValidator, DuplicateNameValidatorMixin
-from src.auth.db.entities import Permission
-from src.auth.db.repositories import (
+from src.validators import BaseValidator, DuplicateNameValidatorMixin
+from src.db.repositories.permission import (
     PermissionRepository,
     get_permission_repository,
 )
 
 
 class PermissionValidator(
-    BaseValidator[PermissionRepository, Permission], DuplicateNameValidatorMixin
+    BaseValidator[PermissionRepository], DuplicateNameValidatorMixin
 ):
     pass
 
