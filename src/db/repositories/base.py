@@ -1,25 +1,21 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Any
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 
-from src.auth.db.clients.postgres import PostgresDatabase
-from src.auth.db.entities import Entity
-from src.auth.db.repositories.abstract import AbstractRepository
+from src.db.clients.postgres import PostgresDatabase
+from src.db.entities import Entity
+from src.db.repositories.abstract import AbstractRepository
 
 ModelType = TypeVar("ModelType", bound=Entity)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
-D = TypeVar("D", bound=PostgresDatabase)
 
 
 class InitRepository:
-    _database: D
-    _model: ModelType
-
-    def __init__(self, database: D, model: type[ModelType]):
+    def __init__(self, database: PostgresDatabase, model: type[ModelType]):
         self._database = database
         self._model = model
 
@@ -27,7 +23,7 @@ class InitRepository:
 class PostgresRepository(
     InitRepository,
     AbstractRepository,
-    Generic[D, ModelType, CreateSchemaType, UpdateSchemaType],
+    Generic[ModelType, CreateSchemaType, UpdateSchemaType],
 ):
     async def create(self, instance: CreateSchemaType) -> ModelType:
         async with self._database.get_session() as session:
@@ -37,12 +33,12 @@ class PostgresRepository(
             await session.refresh(db_obj)
             return db_obj
 
-    async def get_all(self) -> list[ModelType] | None:
+    async def get_all(self) -> list[ModelType] | Any:
         async with self._database.get_session() as session:
             db_objs = await session.execute(select(self._model))
             return db_objs.scalars().all()
 
-    async def get(self, instance_uuid: UUID) -> ModelType | None:
+    async def get(self, instance_uuid: UUID) -> ModelType | Any:
         async with self._database.get_session() as session:
             db_obj = await session.execute(
                 select(self._model).where(self._model.uuid == instance_uuid)

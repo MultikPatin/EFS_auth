@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import TypeVar, Any
 from uuid import UUID
 
 M = TypeVar("M")
@@ -17,11 +17,11 @@ class AbstractRepositoryCD(ABC):
 
 class AbstractRepositoryCRD(AbstractRepositoryCD, ABC):
     @abstractmethod
-    async def get_all(self) -> list[M] | None:
+    async def get_all(self) -> list[M] | Any:
         raise NotImplementedError
 
     @abstractmethod
-    async def get(self, instance_id: UUID, **kwargs) -> M | None:
+    async def get(self, instance_id: UUID, **kwargs) -> M | Any:
         raise NotImplementedError
 
 

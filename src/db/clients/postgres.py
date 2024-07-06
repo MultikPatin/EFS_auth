@@ -13,7 +13,6 @@ logger = logging.getLogger("PostgresDatabase")
 
 
 class PostgresDatabase:
-    # TODO Добавить документацию
     def __init__(self, settings: PostgresSettings) -> None:
         self._async_session_factory = async_sessionmaker(
             create_async_engine(

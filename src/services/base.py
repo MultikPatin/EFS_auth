@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from src.auth.db.repositories.abstract import AbstractRepository
+from src.db.repositories.abstract import AbstractRepository
 
 DBSchemaType = TypeVar("DBSchemaType", bound=BaseModel)
 DBSchemaPaginationType = TypeVar("DBSchemaPaginationType", bound=BaseModel)
@@ -23,8 +23,8 @@ class BaseService(
     InitService,
     Generic[DBSchemaType, DBSchemaPaginationType, CreateSchemaType, UpdateSchemaType],
 ):
-    async def get(self, obj_uuid: UUID) -> DBSchemaType | None:
-        obj = await self._repository.get(obj_uuid)
+    async def get(self, instance_uuid: UUID) -> DBSchemaType | None:
+        obj = await self._repository.get(instance_uuid)
         if obj is None:
             return None
         model = self._model.model_validate(obj, from_attributes=True)
