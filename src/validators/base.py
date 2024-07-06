@@ -27,7 +27,7 @@ class BaseValidator(InitValidator, AbstractValidator, Generic[Repository]):
 
 class DuplicateNameValidatorMixin(InitValidator):
     async def is_duplicate_name(self, name: str) -> None:
-        permission_uuid = await self._repository.get_uuid_filter_by({"name": name})
+        permission_uuid = await self._repository.get_uuid_filter_by(name=name)
         if permission_uuid is not None:
             raise HTTPException(
                 status_code=400,
@@ -37,7 +37,7 @@ class DuplicateNameValidatorMixin(InitValidator):
 
 class DuplicateEmailValidatorMixin(InitValidator):
     async def is_duplicate_email(self, email: str) -> None:
-        user_uuid = await self._repository.get_uuid_filter_by({"email": email})
+        user_uuid = await self._repository.get_uuid_filter_by(email=email)
         if user_uuid is not None:
             raise HTTPException(
                 status_code=400,

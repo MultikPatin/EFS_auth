@@ -10,6 +10,8 @@ from src.db.repositories.abstract import (
     ModelType,
     CreateSchemaType,
     UpdateSchemaType,
+    AbstractRepositoryCD,
+    AbstractRepositoryCRD,
 )
 
 
@@ -19,10 +21,10 @@ class InitRepository:
         self._model = model
 
 
-class PostgresRepository(
+class PostgresRepositoryCD(
     InitRepository,
-    AbstractRepository,
-    Generic[ModelType, CreateSchemaType, UpdateSchemaType],
+    AbstractRepositoryCD,
+    Generic[ModelType, CreateSchemaType],
 ):
     async def create(self, instance: CreateSchemaType) -> ModelType:
         async with self._database.get_session() as session:
@@ -32,6 +34,20 @@ class PostgresRepository(
             await session.refresh(db_obj)
             return db_obj
 
+    async def remove(self, instance_uuid: UUID, **kwargs) -> UUID:
+        async with self._database.get_session() as session:
+            await session.execute(
+                delete(self._model).where(self._model.uuid == instance_uuid)
+            )
+            await session.commit()
+            return instance_uuid
+
+
+class PostgresRepositoryCRD(
+    PostgresRepositoryCD[ModelType, CreateSchemaType],
+    AbstractRepositoryCRD,
+    Generic[ModelType, CreateSchemaType],
+):
     async def get_all(self) -> list[ModelType] | Any:
         async with self._database.get_session() as session:
             db_objs = await session.execute(select(self._model))
@@ -44,6 +60,12 @@ class PostgresRepository(
             )
             return db_obj.scalars().first()
 
+
+class PostgresRepository(
+    PostgresRepositoryCRD[ModelType, CreateSchemaType],
+    AbstractRepository,
+    Generic[ModelType, CreateSchemaType, UpdateSchemaType],
+):
     async def update(
         self, instance_uuid: UUID, instance: UpdateSchemaType
     ) -> ModelType:
@@ -61,14 +83,6 @@ class PostgresRepository(
             await session.refresh(db_obj)
             return db_obj
 
-    async def remove(self, instance_uuid: UUID) -> UUID:
-        async with self._database.get_session() as session:
-            await session.execute(
-                delete(self._model).where(self._model.uuid == instance_uuid)
-            )
-            await session.commit()
-            return instance_uuid
-
     async def count(self) -> int | None:
         async with self._database.get_session() as session:
             db_obj = await session.execute(
@@ -76,13 +90,11 @@ class PostgresRepository(
             )
             return db_obj.scalars().first()
 
-    async def get_uuid_filter_by(self, filter_by: dict[str, Any]) -> str | None:
-        if not filter_by:
+    async def get_uuid_filter_by(self, **kwargs) -> str | None:
+        if not kwargs:
             raise ValueError("Filter by is empty")
         async with self._database.get_session() as session:
-            db_obj = await session.execute(
-                select(self._model.uuid).filter_by(**filter_by)
-            )
+            db_obj = await session.execute(select(self._model.uuid).filter_by(**kwargs))
             obj_uuid = db_obj.scalars().first()
             return obj_uuid
 

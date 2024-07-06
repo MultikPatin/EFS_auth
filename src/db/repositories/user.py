@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Any
+from typing import Any, TypeVar
 from uuid import UUID
 
 from fastapi import Depends
@@ -13,9 +13,11 @@ from src.db.clients.postgres import (
     PostgresDatabase,
     get_postgres_db,
 )
-from src.db.entities import User
+from src.db.entities import User, Entity
 from src.db.repositories.base import PostgresRepository
 from src.db.repositories.role import RoleRepository, get_role_repository
+
+ModelType = TypeVar("ModelType", bound=Entity)
 
 
 class UserRepository(
@@ -30,10 +32,10 @@ class UserRepository(
         super().__init__(database, model)
         self.role_repository = role_repository
 
-    async def create(self, instance: RequestUserCreate) -> User:
+    async def create(self, instance: RequestUserCreate) -> ModelType:
         async with self._database.get_session() as session:
-            role_uuid = await self.role_repository.get_uuid_by_name(
-                settings.empty_role_name
+            role_uuid = await self.role_repository.get_uuid_filter_by(
+                name=settings.start_up.empty_role_name
             )
             create_dict = instance.dict()
             create_dict["role_uuid"] = role_uuid
@@ -47,8 +49,8 @@ class UserRepository(
         async with self._database.get_session() as session:
             db_obj = await session.execute(
                 select(self._model)
-                .where(self._model.uuid == user_uuid)
-                .options(joinedload(self._model.role))
+                .filter_by(user_uuid=user_uuid)
+                .options(joinedload(User.role))
             )
             return db_obj.unique().scalars().first()
 

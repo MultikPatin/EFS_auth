@@ -2,37 +2,34 @@ from functools import lru_cache
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 
-from src.auth.models.api.v1.social_account import RequestSocialAccount
-from src.auth.db.clients.postgres import PostgresDatabase, get_postgres_auth_db
+from src.models.api.v1 import RequestCreateSocialAccount
+from src.db.clients.postgres import PostgresDatabase, get_postgres_db
 from src.db.entities import SocialAccount
-from src.auth.db.repositories.base import (
-    InitRepository,
-)
+from src.db.repositories.base import PostgresRepositoryCD
 
 
-class SocialAccountRepository(InitRepository):
-    async def create(self, instance: RequestSocialAccount) -> SocialAccount:
-        async with self._database.get_session() as session:
-            db_obj = self._model(**instance.model_dump())
-            session.add(db_obj)
-            await session.commit()
-            await session.refresh(db_obj)
-            return db_obj
+class SocialAccountRepository(
+    PostgresRepositoryCD[SocialAccount, RequestCreateSocialAccount]
+):
+    async def remove(self, instance_uuid: UUID, **kwargs) -> UUID:
+        raise NotImplementedError
 
     async def get_by_social_name_id(
         self, social_name: str, social_id: str
-    ) -> UUID | None:
+    ) -> str | None:
         async with self._database.get_session() as session:
             db_obj = await session.execute(
-                select(self._model)
+                select(self._model.uuid)
                 .where(
-                    self._model.social_name == social_name
-                    and self._model.social_id == social_id
+                    and_(
+                        SocialAccount.social_name == social_name,
+                        SocialAccount.social_id == social_id,
+                    )
                 )
-                .options(selectinload(self._model.user))
+                .options(selectinload(SocialAccount.user))
             )
             obj_uuid = db_obj.scalars().first()
             return obj_uuid
@@ -40,6 +37,6 @@ class SocialAccountRepository(InitRepository):
 
 @lru_cache
 def get_social_account(
-    database: PostgresDatabase = Depends(get_postgres_auth_db),
+    database: PostgresDatabase = Depends(get_postgres_db),
 ) -> SocialAccountRepository:
     return SocialAccountRepository(database, SocialAccount)

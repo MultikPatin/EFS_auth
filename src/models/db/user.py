@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import EmailStr
 
-from src.auth.models.db.base import BaseMixin
+from src.models.db.base import BaseMixin
 
 
 class UserDB(BaseMixin):

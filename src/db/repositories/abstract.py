@@ -42,5 +42,5 @@ class AbstractRepository(AbstractRepositoryCRD, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_uuid_filter_by(self, filter_by: dict[str, Any]) -> str | None:
+    async def get_uuid_filter_by(self, **kwargs) -> str | None:
         raise NotImplementedError

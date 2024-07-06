@@ -6,7 +6,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.models.api.v1.roles import (
+from src.models.api.v1 import (
     RequestRoleCreate,
     RequestRoleUpdate,
 )
@@ -29,8 +29,8 @@ class RoleRepository(
         async with self._database.get_session() as session:
             db_obj = await session.execute(
                 select(self._model)
-                .where(self._model.uuid == role_uuid)
-                .options(selectinload(self._model.permissions))
+                .filter_by(role_uuid=role_uuid)
+                .options(selectinload(Role.permissions))
             )
             return db_obj.unique().scalars().first()
 

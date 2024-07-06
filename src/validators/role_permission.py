@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from src.db.repositories.many_to_many.role_pemission import (
+from src.db.repositories.role_pemission import (
     RolePermissionRepository,
     get_role_permission_repository,
 )

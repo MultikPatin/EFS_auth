@@ -7,7 +7,7 @@ from fastapi import Depends
 
 from src.cache.redis import RedisCache, get_redis
 from src.configs import TokenSettings
-from src.models.db.token import CacheTokens, UserClaims
+from src.models.token import CacheTokens, UserClaims
 
 
 class TokenUtils:

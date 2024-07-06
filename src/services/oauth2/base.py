@@ -12,9 +12,9 @@ from pydantic import SecretStr
 from src.cache.redis import RedisCache
 from src.db.entities import User
 from src.models.api.v1.login_history import RequestLoginHistory
-from src.models.api.v1.social_account import RequestSocialAccount
+from src.models.api.v1.social_account import RequestCreateSocialAccount
 from src.models.api.v1.users import RequestUserCreate
-from src.models.db.token import UserClaims
+from src.models.token import UserClaims
 from src.utils.tokens import TokenUtils
 from src.db.repositories.login_history import LoginHistoryRepository
 from src.db.repositories.social_account import SocialAccountRepository
@@ -59,7 +59,7 @@ class OAuth2BaseService:
             )
             # TODO Нотификация с просьбой сменить пароль
             await self._social_account_repository.create(
-                RequestSocialAccount(
+                RequestCreateSocialAccount(
                     user_uuid=user.uuid,
                     social_name=claims.get("iss"),
                     social_id=claims.get("sub"),

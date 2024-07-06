@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from src.auth.models.db.base import BaseMixin
+from src.models.db.base import BaseMixin
 
 
 class SocialAccountDB(BaseMixin):

@@ -1,19 +1,19 @@
 from pydantic import BaseModel, Field
 
-from src.auth.models.api.base import (
+from src.models.api.v1.base import (
     TimeMixin,
     UUIDMixin,
 )
 from src.models.api.v1.permissions import (
     ResponsePermissionShort,
 )
-from src.auth.utils.pagination import PaginatedMixin
+from src.utils.pagination import PaginatedMixin
 
 
 class RequestRoleUpdate(BaseModel):
     description: str = Field(
         description="Описание роли",
-        example="Премиальный доступ",
+        examples=["Премиальный доступ"],
         min_length=1,
         max_length=255,
     )
@@ -22,13 +22,13 @@ class RequestRoleUpdate(BaseModel):
 class RequestRoleCreate(RequestRoleUpdate):
     description: str | None = Field(
         description="Описание роли",
-        example="Премиальный доступ",
+        examples=["Премиальный доступ"],
         min_length=1,
         max_length=255,
     )
     name: str = Field(
         description="Наименование роли",
-        example="Премиум",
+        examples=["Премиум"],
         min_length=1,
         max_length=64,
     )
@@ -37,7 +37,7 @@ class RequestRoleCreate(RequestRoleUpdate):
 class RoleBase(RequestRoleUpdate, UUIDMixin, TimeMixin):
     name: str = Field(
         description="Наименование роли",
-        example="Премиум",
+        examples=["Премиум"],
         min_length=1,
         max_length=64,
     )
@@ -50,7 +50,7 @@ class ResponseRole(RequestRoleCreate, UUIDMixin, TimeMixin):
 class ResponseRoleShort(UUIDMixin):
     name: str = Field(
         description="Наименование роли",
-        example="Премиум",
+        examples=["Премиум"],
         min_length=1,
         max_length=64,
     )

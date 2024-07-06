@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.auth.models.api.base import LoginMixin, TokenMixin
+from src.models.api.v1.base import LoginMixin, TokenMixin
 
 
 class ResponseToken(BaseModel):
@@ -16,7 +16,8 @@ class RequestTokenRemover(TokenMixin):
     for_all_sessions: bool
 
 
-class RequestTokenRefreshChecker(TokenMixin): ...
+class RequestTokenRefreshChecker(TokenMixin):
+    pass
 
 
 class RequestTokenVerify(TokenMixin):
