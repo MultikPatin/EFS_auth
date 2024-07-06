@@ -6,31 +6,24 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.auth.models.api.v1.roles import (
+from src.models.api.v1.roles import (
     RequestRoleCreate,
     RequestRoleUpdate,
 )
-from src.auth.db.clients.postgres import (
+from src.db.clients.postgres import (
     PostgresDatabase,
-    get_postgres_auth_db,
+    get_postgres_db,
 )
-from src.auth.db.entities import Role
-from src.auth.db.repositories.base import (
-    CountRepositoryMixin,
-    NameFieldRepositoryMixin,
-    PostgresRepository,
-)
+from src.db.entities import Role
+from src.db.repositories.base import PostgresRepository
 
 
 class RoleRepository(
     PostgresRepository[
-        PostgresDatabase,
         Role,
         RequestRoleCreate,
         RequestRoleUpdate,
     ],
-    NameFieldRepositoryMixin,
-    CountRepositoryMixin,
 ):
     async def get_with_permissions(self, role_uuid: UUID) -> Any | None:
         async with self._database.get_session() as session:
@@ -44,6 +37,6 @@ class RoleRepository(
 
 @lru_cache
 def get_role_repository(
-    database: PostgresDatabase = Depends(get_postgres_auth_db),
+    database: PostgresDatabase = Depends(get_postgres_db),
 ) -> RoleRepository:
     return RoleRepository(database, Role)

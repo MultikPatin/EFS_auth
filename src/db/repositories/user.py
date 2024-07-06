@@ -11,21 +11,15 @@ from src.models.api.v1.users import RequestUserCreate, RequestUserUpdate
 from src.models.api.v1.users_additional import RequestPasswordChange
 from src.db.clients.postgres import (
     PostgresDatabase,
-    get_postgres_auth_db,
+    get_postgres_db,
 )
 from src.db.entities import User
-from src.db.repositories.base import (
-    CountRepositoryMixin,
-    EmailFieldRepositoryMixin,
-    PostgresRepository,
-)
+from src.db.repositories.base import PostgresRepository
 from src.db.repositories.role import RoleRepository, get_role_repository
 
 
 class UserRepository(
-    PostgresRepository[PostgresDatabase, User, RequestUserCreate, RequestUserUpdate],
-    EmailFieldRepositoryMixin,
-    CountRepositoryMixin,
+    PostgresRepository[User, RequestUserCreate, RequestUserUpdate],
 ):
     def __init__(
         self,
@@ -82,7 +76,7 @@ class UserRepository(
 
 @lru_cache
 def get_user_repository(
-    database: PostgresDatabase = Depends(get_postgres_auth_db),
+    database: PostgresDatabase = Depends(get_postgres_db),
     role_repository: RoleRepository = Depends(get_role_repository),
 ) -> UserRepository:
     return UserRepository(database, User, role_repository)

@@ -55,7 +55,7 @@ class Paginator:
             )
         return PaginatedData(**self._get_result_params().dict(), results=models)
 
-    def _validate(self) -> dict:
+    def _validate(self) -> dict[str, Any]:
         if self.__page_number > 1:
             total = (self.__page_number - 1) * self.__page_size + 1
             if total > self.__count:

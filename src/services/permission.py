@@ -7,9 +7,9 @@ from src.models.api.v1.permissions import (
     RequestPermissionUpdate,
     ResponsePermissionsPaginated,
 )
-from src.auth.models.db.permission import PermissionDB
-from src.auth.services.base import BaseService
-from src.auth.db.repositories import (
+from src.models.db.permission import PermissionDB
+from src.services.base import BaseService
+from src.db.repositories.permission import (
     PermissionRepository,
     get_permission_repository,
 )

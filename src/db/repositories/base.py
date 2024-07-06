@@ -1,17 +1,16 @@
-from typing import Generic, TypeVar, Any
+from typing import Generic, Any
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 
 from src.db.clients.postgres import PostgresDatabase
-from src.db.entities import Entity
-from src.db.repositories.abstract import AbstractRepository
-
-ModelType = TypeVar("ModelType", bound=Entity)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+from src.db.repositories.abstract import (
+    AbstractRepository,
+    ModelType,
+    CreateSchemaType,
+    UpdateSchemaType,
+)
 
 
 class InitRepository:
@@ -38,7 +37,7 @@ class PostgresRepository(
             db_objs = await session.execute(select(self._model))
             return db_objs.scalars().all()
 
-    async def get(self, instance_uuid: UUID) -> ModelType | Any:
+    async def get(self, instance_uuid: UUID, **kwargs) -> ModelType | Any:
         async with self._database.get_session() as session:
             db_obj = await session.execute(
                 select(self._model).where(self._model.uuid == instance_uuid)
@@ -70,38 +69,46 @@ class PostgresRepository(
             await session.commit()
             return instance_uuid
 
-
-class NameFieldRepositoryMixin(InitRepository):
-    async def get_uuid_by_name(self, name: str) -> UUID | None:
-        async with self._database.get_session() as session:
-            db_obj = await session.execute(
-                select(self._model.uuid).where(self._model.name == name)
-            )
-            obj_uuid = db_obj.scalars().first()
-            return obj_uuid
-
-
-class EmailFieldRepositoryMixin(InitRepository):
-    async def get_uuid_by_email(self, email: str) -> UUID | None:
-        async with self._database.get_session() as session:
-            db_obj = await session.execute(
-                select(self._model.uuid).where(self._model.email == email)
-            )
-            obj_uuid = db_obj.scalars().first()
-            return obj_uuid
-
-    async def get_by_email(self, email: str) -> ModelType | None:
-        async with self._database.get_session() as session:
-            db_obj = await session.execute(
-                select(self._model).where(self._model.email == email)
-            )
-            return db_obj.scalars().first()
-
-
-class CountRepositoryMixin(InitRepository):
     async def count(self) -> int | None:
         async with self._database.get_session() as session:
             db_obj = await session.execute(
                 select(func.count()).select_from(self._model)
             )
             return db_obj.scalars().first()
+
+    async def get_uuid_filter_by(self, filter_by: dict[str, Any]) -> str | None:
+        if not filter_by:
+            raise ValueError("Filter by is empty")
+        async with self._database.get_session() as session:
+            db_obj = await session.execute(
+                select(self._model.uuid).filter_by(**filter_by)
+            )
+            obj_uuid = db_obj.scalars().first()
+            return obj_uuid
+
+
+# class NameFieldRepositoryMixin(InitRepository):
+#     async def get_uuid_by_name(self, name: str) -> UUID | None:
+#         async with self._database.get_session() as session:
+#             db_obj = await session.execute(
+#                 select(self._model.uuid).filter_by(**{"name": name})
+#             )
+#             obj_uuid = db_obj.scalars().first()
+#             return obj_uuid
+#
+#
+# class EmailFieldRepositoryMixin(InitRepository):
+#     async def get_uuid_by_email(self, email: str) -> UUID | None:
+#         async with self._database.get_session() as session:
+#             db_obj = await session.execute(
+#                 select(self._model.uuid).filter_by(**{"email": email})
+#             )
+#             obj_uuid = db_obj.scalars().first()
+#             return obj_uuid
+#
+#     async def get_by_email(self, email: str) -> ModelType | None:
+#         async with self._database.get_session() as session:
+#             db_obj = await session.execute(
+#                 select(self._model).filter_by(**{"email": email})
+#             )
+#             return db_obj.scalars().first()

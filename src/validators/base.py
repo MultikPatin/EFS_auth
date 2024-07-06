@@ -6,15 +6,15 @@ from fastapi import HTTPException
 from src.db.repositories.abstract import AbstractRepository
 from src.validators.abstract import AbstractValidator
 
-R = TypeVar("R", bound=AbstractRepository)
+Repository = TypeVar("Repository", bound=AbstractRepository)
 
 
 class InitValidator:
-    def __init__(self, repository: R):
-        self._repository: R = repository
+    def __init__(self, repository: Repository):
+        self._repository: Repository = repository
 
 
-class BaseValidator(InitValidator, AbstractValidator, Generic[R]):
+class BaseValidator(InitValidator, AbstractValidator, Generic[Repository]):
     async def is_exists(self, instance_uuid: UUID) -> UUID:
         instance = await self._repository.get(instance_uuid)
         if instance is None:
@@ -27,7 +27,7 @@ class BaseValidator(InitValidator, AbstractValidator, Generic[R]):
 
 class DuplicateNameValidatorMixin(InitValidator):
     async def is_duplicate_name(self, name: str) -> None:
-        permission_uuid = await self._repository.get_uuid_by_name(name)
+        permission_uuid = await self._repository.get_uuid_filter_by({"name": name})
         if permission_uuid is not None:
             raise HTTPException(
                 status_code=400,
@@ -37,7 +37,7 @@ class DuplicateNameValidatorMixin(InitValidator):
 
 class DuplicateEmailValidatorMixin(InitValidator):
     async def is_duplicate_email(self, email: str) -> None:
-        user_uuid = await self._repository.get_uuid_by_email(email)
+        user_uuid = await self._repository.get_uuid_filter_by({"email": email})
         if user_uuid is not None:
             raise HTTPException(
                 status_code=400,
