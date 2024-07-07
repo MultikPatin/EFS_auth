@@ -8,18 +8,17 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from src.core.configs.postgres import PostgresAuthSettings
-from src.core.db.entities import Entity
-from src.core.utils.sqlalchemy import SQLAlchemyConnectMixin
+from src.configs import PostgresSettings
+from src.db.entities import Entity
 
 
-class Settings(PostgresAuthSettings, SQLAlchemyConnectMixin):
+class Settings(PostgresSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    debug: bool = Field("True", alias="DEBUG")
+    debug: bool = Field(default=True)
 
 
 settings = Settings()
