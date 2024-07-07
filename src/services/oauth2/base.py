@@ -68,7 +68,7 @@ class OAuth2BaseService:
             return self.__get_user_claims(user)
 
     @staticmethod
-    def __get_user_claims(user: User | None) -> UserClaims:
+    def __get_user_claims(user: User) -> UserClaims:
         # TODO Возможно ли лучше?)
         try:
             user_claims = UserClaims(

@@ -8,19 +8,19 @@ from pydantic import BaseModel, Field
 class PaginatedMixin(BaseModel):
     count: int = Field(
         description="Количество строк в таблице",
-        example=356,
+        examples=[356],
     )
     total_pages: int = Field(
         description="Количество страниц с заданным 'page_size' в таблице",
-        example=20,
+        examples=[20],
     )
     prev: int | None = Field(
         description="Номер предыдущей страницы",
-        example=1,
+        examples=[1],
     )
     next: int | None = Field(
         description="Номер следующей страницы",
-        example=3,
+        examples=[3],
     )
 
     class Meta:
