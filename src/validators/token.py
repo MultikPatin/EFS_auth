@@ -7,15 +7,15 @@ from jwt import (
     decode,
 )
 
-from src.auth.core.config import settings
+from src.configs import settings
 
 
-def validate_token(token) -> dict[str, str] | None:
+def validate_token(token: str | bytes) -> dict[str, str] | None:
     try:
         raw_jwt = decode(
-            token,
-            key=settings.authjwt_secret_key,
-            algorithms=settings.authjwt_algorithm,
+            jwt=token,
+            key=settings.token.authjwt_secret_key,
+            algorithms=[settings.token.authjwt_algorithm],
         )
     except (InvalidSignatureError, ExpiredSignatureError) as e:
         raise HTTPException(

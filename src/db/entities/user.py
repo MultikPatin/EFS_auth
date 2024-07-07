@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING
 
 from pydantic import SecretStr
@@ -45,7 +46,7 @@ class User(Entity):
         password: SecretStr,
         first_name: str,
         last_name: str,
-        role_uuid: UUID,
+        role_uuid: uuid.UUID,
         is_superuser: bool = False,
     ) -> None:
         self.email = email

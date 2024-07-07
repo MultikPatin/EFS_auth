@@ -4,11 +4,9 @@ from async_fastapi_jwt_auth import AuthJWT
 from async_fastapi_jwt_auth.auth_jwt import AuthJWTBearer
 from fastapi import Depends, HTTPException, Request
 
-from src.auth.models.api.v1.users import ResponseUser
-from src.auth.validators.token import validate_token
-from src.auth.db.repositories import UserRepository, get_user_repository
-
-auth_dep = AuthJWTBearer()
+from src.models.api.v1.users import ResponseUser
+from src.validators.token import validate_token
+from src.db.repositories.user import UserRepository, get_user_repository
 
 
 class CurrentUserService:
@@ -51,6 +49,6 @@ class CurrentUserService:
 
 def get_current_user(
     user_repository: UserRepository = Depends(get_user_repository),
-    authorize: AuthJWT = Depends(auth_dep),
+    authorize: AuthJWT = AuthJWTBearer(),
 ) -> CurrentUserService:
     return CurrentUserService(user_repository, authorize)

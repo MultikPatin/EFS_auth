@@ -1,34 +1,34 @@
+import logging
+
 from datetime import timedelta
-from logging import Logger
 from typing import Any
 from redis.asyncio import Redis
 
-from src.configs.app import settings
+from src.configs import TokenSettings
 from src.cache.abstract import AbstractCache
+
+logger = logging.getLogger("RedisCache")
 
 
 class RedisCache(AbstractCache):
-    _redis: Redis
-    _logger: Logger
-
-    def __init__(self, redis: Redis, logger: Logger):
-        self._redis = redis
-        self._logger = logger
+    def __init__(self, cache: Redis, settings: TokenSettings):
+        self.__cache = cache
+        self.__settings = settings
 
     async def close(self) -> None:
         """
         Close the connection with Redis.
         """
-        await self._redis.aclose()
-        self._logger.info("Connection to Redis was closed.")
+        await self.__cache.aclose()
+        logger.info("Connection to Redis was closed.")
 
     async def ping(self) -> Any:
         """
         Ping the Redis server to ensure the connection is still alive.
         """
-        return await self._redis.ping()
+        return await self.__cache.ping()
 
-    async def _collect_keys(self, user_uuid: str) -> list[str] | None:
+    async def __collect_keys(self, user_uuid: str) -> list[str] | None:
         """
         Collect all the user's refresh_token.
 
@@ -39,9 +39,9 @@ class RedisCache(AbstractCache):
             list[str] | None: returns refresh_token if any
         """
         keys = []
-        async for key in self._redis.scan_iter(f"{user_uuid}:*", 10000):
+        async for key in self.__cache.scan_iter(f"{user_uuid}:*", 10000):
             keys.append(key)
-            if len(keys) == settings.token.user_max_sessions:
+            if len(keys) == self.__settings.user_max_sessions:
                 break
         return keys
 
@@ -77,13 +77,13 @@ class RedisCache(AbstractCache):
         key = self._build_key(user_uuid, token)
 
         try:
-            await self._redis.set(
+            await self.__cache.set(
                 name=key,
                 value=token,
-                ex=timedelta(minutes=settings.token.expire_time_in_minutes),
+                ex=timedelta(minutes=self.__settings.expire_time_in_minutes),
             )
         except Exception as error:
-            self._logger.error(
+            logger.error(
                 "Error setting value with key `%s::%s`: %s.",
                 key,
                 token,
@@ -104,16 +104,14 @@ class RedisCache(AbstractCache):
         Returns:
             The cached tokens, or None if the tokens are not in the cache.
         """
-        keys = await self._collect_keys(user_uuid)
+        keys = await self.__collect_keys(user_uuid)
 
         try:
-            values = await self._redis.mget(keys)
+            values = await self.__cache.mget(keys)
             if not values:
                 return None
         except Exception as error:
-            self._logger.error(
-                "Error getting value with key `%s`: %s.", user_uuid, error
-            )
+            logger.error("Error getting value with key `%s`: %s.", user_uuid, error)
             raise
 
         return values
@@ -131,15 +129,13 @@ class RedisCache(AbstractCache):
 
         """
         if all_tokens:
-            keys = await self._collect_keys(user_uuid)
+            keys = await self.__collect_keys(user_uuid)
         else:
             keys = [self._build_key(user_uuid, token)]
         try:
-            await self._redis.delete(*keys)
+            await self.__cache.delete(*keys)
         except Exception as get_error:
-            self._logger.error(
-                "Error deletion value with key `%s`: %s.", keys, get_error
-            )
+            logger.error("Error deletion value with key `%s`: %s.", keys, get_error)
             raise
         return
 

@@ -12,7 +12,7 @@ from fastapi import Depends, HTTPException, Request
 from src.cache.redis import RedisCache, get_redis
 from src.configs import Oauth2GoogleSettings
 
-from src.models.db.token import UserClaims
+from src.models.token import UserClaims
 from src.oauth2_clients.google import Oauth2GoogleClient, get_oauth2_google_client
 from src.services.oauth2.base import OAuth2BaseService
 from src.utils.tokens import TokenUtils, get_token_utils

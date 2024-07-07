@@ -3,12 +3,11 @@ from uuid import UUID
 
 from fastapi import Depends, Path
 
-from src.auth.validators.base import BaseValidator, DuplicateNameValidatorMixin
-from src.auth.db.entities import Role
-from src.auth.db.repositories.role import RoleRepository, get_role_repository
+from src.validators import BaseValidator, DuplicateNameValidatorMixin
+from src.db.repositories.role import RoleRepository, get_role_repository
 
 
-class RoleValidator(BaseValidator[RoleRepository, Role], DuplicateNameValidatorMixin):
+class RoleValidator(BaseValidator[RoleRepository], DuplicateNameValidatorMixin):
     pass
 
 

@@ -2,14 +2,14 @@ from functools import lru_cache
 
 from fastapi import Depends
 
-from src.auth.models.api.v1.roles import (
+from src.models.api.v1 import (
     RequestRoleCreate,
     RequestRoleUpdate,
     ResponseRolesPaginated,
 )
-from src.auth.models.db.role import RoleDB
-from src.auth.services.base import BaseService
-from src.auth.db.repositories.role import RoleRepository, get_role_repository
+from src.models.db import RoleDB
+from src.services.base import BaseService
+from src.db.repositories.role import RoleRepository, get_role_repository
 
 
 class RoleService(

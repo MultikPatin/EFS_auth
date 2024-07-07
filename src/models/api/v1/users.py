@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 
-from src.models.api.base import (
+from src.models.api.v1.base import (
     LoginMixin,
     TimeMixin,
     UUIDMixin,
@@ -14,13 +14,13 @@ from src.utils.pagination import PaginatedMixin
 class RequestUserUpdate(BaseModel):
     first_name: str | None = Field(
         description="Имя пользователя",
-        example="Вася",
+        examples=["Вася"],
         min_length=1,
         max_length=64,
     )
     last_name: str | None = Field(
         description="Фамилия пользователя",
-        example="Пупкин",
+        examples=["Пупкин"],
         min_length=1,
         max_length=64,
     )
@@ -37,13 +37,13 @@ class UserBase(RequestUserCreate, UUIDMixin, TimeMixin):
 class ResponseUser(RequestUserUpdate, UUIDMixin, TimeMixin):
     email: EmailStr = Field(
         description="Email пользователя",
-        example="exemple@mail.ru",
+        examples=["exemple@mail.ru"],
         min_length=1,
         max_length=64,
     )
     is_superuser: bool = Field(
         description="Флаг - является ли пользователь администратором",
-        example=False,
+        examples=[False],
     )
     role_uuid: UUID | None
 
@@ -51,7 +51,7 @@ class ResponseUser(RequestUserUpdate, UUIDMixin, TimeMixin):
 class ResponseUserShort(RequestUserUpdate, UUIDMixin):
     email: EmailStr = Field(
         description="Email пользователя",
-        example="exemple@mail.ru",
+        examples=["exemple@mail.ru"],
         min_length=1,
         max_length=64,
     )

@@ -1,37 +1,32 @@
 from functools import lru_cache
-from typing import TypeVar
+from typing import Sequence, TypeVar
 from uuid import UUID
 
 from fastapi import Depends
 from sqlalchemy import func, select
 
-from src.auth.models.api.v1.login_history import RequestLoginHistory
-from src.auth.db.clients.postgres import (
+from src.db.repositories.base import PostgresRepositoryCRD
+from src.models.api.v1 import RequestLoginHistory
+from src.db.clients.postgres import (
     PostgresDatabase,
-    get_postgres_auth_db,
+    get_postgres_db,
 )
-from src.auth.db.entities import LoginHistory
-from src.auth.db.repositories.base import InitRepository
+from src.db.entities import LoginHistory, Entity
 
-ModelType = TypeVar("ModelType", bound=LoginHistory)
+ModelType = TypeVar("ModelType", bound=Entity)
 
 
-class LoginHistoryRepository(InitRepository):
-    async def create(self, instance: RequestLoginHistory) -> ModelType:
-        async with self._database.get_session() as session:
-            db_obj = self._model(**instance.dict())
-            session.add(db_obj)
-            await session.commit()
-            await session.refresh(db_obj)
-            return db_obj
+class LoginHistoryRepository(PostgresRepositoryCRD[LoginHistory, RequestLoginHistory]):
+    async def remove(self, instance_uuid: UUID, **kwargs) -> UUID:
+        raise NotImplementedError
 
-    async def get_by_user(self, user_uuid: UUID, **kwargs) -> list[ModelType] | None:
+    async def get_by_user(self, user_uuid: UUID, **kwargs) -> Sequence[ModelType]:
         limit = kwargs.get("limit")
         offset = kwargs.get("offset")
         async with self._database.get_session() as session:
             query = (
                 select(self._model)
-                .where(self._model.user_uuid == user_uuid)
+                .filter_by(user_uuid=user_uuid)
                 .order_by(self._model.created_at.desc())
             )
             if limit:
@@ -51,6 +46,6 @@ class LoginHistoryRepository(InitRepository):
 
 @lru_cache
 def get_login_history_repository(
-    database: PostgresDatabase = Depends(get_postgres_auth_db),
+    database: PostgresDatabase = Depends(get_postgres_db),
 ) -> LoginHistoryRepository:
     return LoginHistoryRepository(database, LoginHistory)

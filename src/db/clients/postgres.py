@@ -2,45 +2,18 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from dotenv import load_dotenv
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from src.configs import PostgresSettings
 
-from src.auth.configs.postgres import (
-    PostgresAuthSettings,
-    PostgresContentSettings,
-)
-from src.core.db.clients.abstract import AbstractDBClient
-from src.auth.utils.sqlalchemy import SQLAlchemyConnectMixin
-
-logger = logging.getLogger(__name__)
-logger.level = logging.DEBUG
-
-load_dotenv()
+logger = logging.getLogger("PostgresDatabase")
 
 
-class PostgresContentConnect(PostgresContentSettings, SQLAlchemyConnectMixin):
-    pass
-
-
-async def get_postgres_content_settings() -> PostgresContentConnect:
-    return PostgresContentConnect()
-
-
-class PostgresAuthConnect(PostgresAuthSettings, SQLAlchemyConnectMixin):
-    pass
-
-
-async def get_postgres_auth_settings() -> PostgresAuthConnect:
-    return PostgresAuthConnect()
-
-
-class PostgresDatabase(AbstractDBClient):
-    def __init__(self, settings) -> None:
+class PostgresDatabase:
+    def __init__(self, settings: PostgresSettings) -> None:
         self._async_session_factory = async_sessionmaker(
             create_async_engine(
                 settings.postgres_connection_url, echo=settings.sqlalchemy_echo
@@ -62,15 +35,7 @@ class PostgresDatabase(AbstractDBClient):
             await session.close()
 
 
-def get_postgres_content_db(
-    settings: PostgresContentConnect = Depends(
-        get_postgres_content_settings, use_cache=True
-    ),
-) -> PostgresDatabase:
-    return PostgresDatabase(settings)
-
-
-def get_postgres_auth_db(
-    settings: PostgresAuthConnect = Depends(get_postgres_auth_settings, use_cache=True),
+def get_postgres_db(
+    settings: PostgresSettings = PostgresSettings(),
 ) -> PostgresDatabase:
     return PostgresDatabase(settings)

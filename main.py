@@ -4,18 +4,17 @@ from typing import Any
 
 import uvicorn
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-from fastapi import FastAPI
 
-# from fastapi import FastAPI, Request, status
-# from fastapi.responses import ORJSONResponse
+from fastapi import FastAPI, Depends, Request, status
+
+from fastapi.responses import ORJSONResponse
 from fastapi_limiter import FastAPILimiter
 from redis.asyncio import Redis
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.cache import redis
-from src.configs import settings, LOGGING, PostgresSettings
+from src.configs import settings, LOGGING
 
-# from src.configs.logger import LOGGING
 from src.endpoints.v1 import (
     oauth2,
     permissions,
@@ -24,31 +23,26 @@ from src.endpoints.v1 import (
     users,
     users_additional,
 )
-from src.auth.oauth_clients import google
+from src.oauth2_clients import google
 from src.services.start_up import StartUpService
-from src.db.clients.postgres import PostgresDatabase
-from src.auth.utils.logger import create_logger
+from src.db.clients.postgres import get_postgres_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     startup_methods: StartUpService = StartUpService(
-        database=PostgresDatabase(PostgresSettings()), settings=settings.start_up
+        database=Depends(get_postgres_db), settings=settings.start_up
     )
-    await startup_methods.create_partition()
     await startup_methods.create_empty_role()
     await startup_methods.create_admin_user()
     redis.redis = redis.RedisCache(
-        Redis(**settings.redis.connection_dict),
-        logger=create_logger("API RedisCache"),
+        Redis(**settings.redis.connection_dict), settings=settings.token
     )
-    google.google = google.OauthGoogle(
-        AsyncOAuth2Client(**settings.google.settings_dict),
-        logger=create_logger("API OAUTH Google"),
+    google.oauth2_google_client = google.Oauth2GoogleClient(
+        AsyncOAuth2Client(**settings.oauth2.google.settings_dict),
+        settings=settings.oauth2.google,
     )
-    settings.redis.correct_port()
-    redis_limiter_connection = Redis(**settings.redis.connection_dict)
-    await FastAPILimiter.init(redis_limiter_connection)
+    await FastAPILimiter.init(Redis(**settings.redis.connection_dict))
     yield
     await redis.redis.close()
     await FastAPILimiter.close()
@@ -62,16 +56,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# @app.middleware("http")
-# async def check_request_id(request: Request, call_next):
-#     request_id = request.headers.get("X-Request-Id")
-#     if not request_id:
-#         return ORJSONResponse(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             content={"detail": "X-Request-Id is required"},
-#         )
-#     response = await call_next(request)
-#     return response
+
+@app.middleware("http")
+async def check_request_id(request: Request, call_next):
+    request_id = request.headers.get("X-Request-Id")
+    if not request_id:
+        return ORJSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": "X-Request-Id is required"},
+        )
+    response = await call_next(request)
+    return response
 
 
 app.add_middleware(

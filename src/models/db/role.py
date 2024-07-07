@@ -1,5 +1,5 @@
-from src.auth.models.db.base import BaseMixin
-from src.auth.models.db.permission import PermissionDB
+from src.models.db.base import BaseMixin
+from src.models.db.permission import PermissionDB
 
 
 class RoleDB(BaseMixin):

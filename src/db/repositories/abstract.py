@@ -1,39 +1,46 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import TypeVar, Any
 from uuid import UUID
 
-DB = TypeVar("DB")
-M = TypeVar("M")
+from pydantic import BaseModel
+from src.db.entities import Entity
+
+ModelType = TypeVar("ModelType", bound=Entity)
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
 class AbstractRepositoryCD(ABC):
-    _database: DB
-    _model: M
+    @abstractmethod
+    async def create(self, instance: CreateSchemaType) -> ModelType:
+        raise NotImplementedError
 
     @abstractmethod
-    async def create(self, instance: M) -> M:
-        pass
-
-    @abstractmethod
-    async def remove(self, instance: M) -> None:
-        pass
+    async def remove(self, instance_uuid: UUID) -> UUID:
+        raise NotImplementedError
 
 
 class AbstractRepositoryCRD(AbstractRepositoryCD, ABC):
     @abstractmethod
-    async def get_all(self) -> list[M] | None:
-        pass
+    async def get_all(self) -> list[ModelType] | Any:
+        raise NotImplementedError
 
     @abstractmethod
-    async def get(self, instance_id: UUID) -> M | None:
-        pass
+    async def get(self, instance_uuid: UUID, **kwargs) -> ModelType | Any:
+        raise NotImplementedError
 
 
 class AbstractRepository(AbstractRepositoryCRD, ABC):
     @abstractmethod
-    async def update(self, instance_id: UUID, instance: M) -> M:
-        pass
+    async def update(
+        self, instance_uuid: UUID, instance: UpdateSchemaType
+    ) -> ModelType:
+        raise NotImplementedError
 
     @abstractmethod
-    async def count(self) -> int:
-        pass
+    async def count(self) -> int | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_uuid_filter_by(self, **kwargs) -> str | None:
+        raise NotImplementedError
